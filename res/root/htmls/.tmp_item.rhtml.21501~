@@ -1,0 +1,53 @@
+<div class="video_title"><a href="#" class="video" onclick="lightbox('/root/show_video?id=<%= @item.id %><%= params["search"] ? "&edit=true" : ""%>');return false;"><%= @item.name %></a></div>
+<div class="screenshot"><a href="#" onclick="lightbox('/root/show_video?id=<%= @item.id %>');return false;"><%= media_screenshot(@item.id, @item.mediatype, nil, 140, false, !@item.mid ? true : false, "screenshot", @item.mid) %></a></div>
+<div class="video_info">
+	<table cellpadding="0" border="0" cellpadding="0" cellspacing="0">
+		<% if @item.mediatype == 1 %>
+			<% tags = collection.tags_for_item(@item.id) %>
+			<% if tags.artist %>
+				<tr>
+					<td class="key" valign="top">Artist:</td>
+					<td class="val">
+						<% tags.artist.each do | artist | %>
+							<a href="#" class="small" onclick="searchBy(';artist=<%= artist %>', 1);return false;"><%= artist %></a>&nbsp;
+						<% end %>
+					</td>
+				</tr>
+			<% end %>
+			<% if tags.album %>
+				<tr>
+					<td class="key" valign="top">Album:</td>
+					<td class="val">
+						<% tags.album.each do | album | %>
+							<a href="#" class="small" onclick="searchBy(';album=<%= album %>', 1);return false;"><%= album %></a>&nbsp;
+						<% end %>
+					</td>
+				</tr>
+			<% end %>
+		<% end %>
+		<tr>
+			<td class="key">Added:</td><td class="val"><%= @item.added.strftime("%Y-%m-%d") %></td>
+		</tr>
+		<tr>
+			<td class="key"><%= ["Views", "Play count", "Views", "Views"][@item.mediatype] %>:</td><td class="val"><%= @item.views %></td>
+		</tr>
+		<tr>
+			<td class="key">Rating:</td><td class="val"><div id="stars_<%= @item.id %>" class="stars"><%= html("rating") %></div></td>
+		</tr>
+		<% if @item.mediatype != Knots::ITEM_TYPE_AUDIO %>
+			<tr>
+				<td class="key">Resolution:</td><td class="val"><%= @item.width && @item.height ? "#{@item.width}x#{@item.height}" : "Unknown" %></td>
+			</tr>
+			<tr>
+				<td class="key">Aspect:</td><td class="val"><%= @item.aspect || "Unknown" %></td>
+			</tr>
+		<% end %>
+		<% if @item.duration %>
+			<tr>
+			<td class="key"><%= @item.position == 0 ? "Duration" : "<a href=\"#\" onclick=\"removeResumepoint(#{@item.id});return false;\">Position</a>" %>:</td><td class="val"><%= @item.position != 0 ? "#{Common.position_for_ffmpeg(@item.duration * @item.position)} / " : "" %><%= @item.duration && @item.duration > 0 ? Common.position_for_ffmpeg(@item.duration) : "Unknown" %></td>
+			</tr>
+		<% end %>
+	 </table>
+	 <input type="hidden" id="checkid_<%= @i %>" name="checkid_<%= @i %>" value="<%= @item.id %>" />
+</div>
+

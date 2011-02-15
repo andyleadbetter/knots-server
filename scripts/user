@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+begin
+	if RUBY_VERSION >= "1.9.2"
+		@knots_dir = File.expand_path(File.dirname(File.dirname(__FILE__)))
+		$LOAD_PATH.push(@knots_dir) if !$LOAD_PATH.include?(@knots_dir)
+	end
+	require 'lib/db'
+	require 'lib/common'
+	require 'digest/md5'
+rescue	Exception => ex
+	puts "This script must be run from the knots root"
+	exit
+end
+require 'fileutils'
+
+class Users
+	def initialize
+		db = Common.load_database(false)
+		if ARGV.size < 2
+			puts "Usage: users add|delete username [password] [role]"
+		elsif ARGV[0] == "delete"
+			db.users.delete_user("LIKE \"#{ARGV[1]}\"")
+			puts "User deleted"
+		elsif ARGV[0] == "add" && ARGV.size >= 3
+			user = db.users.by_user("LIKE \"#{ARGV[1]}\"").first || db.users.new
+			user.user = ARGV[1]
+			user.pass = Digest::MD5.hexdigest(ARGV[2])
+			ARGV[3] = "guest" if !ARGV[3]
+			user.role = ["admin", "guest"].index(ARGV[3]) || 1
+			user.save
+			puts "User saved"
+		end
+	end
+end
+Users.new
+

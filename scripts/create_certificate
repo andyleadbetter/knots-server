@@ -1,0 +1,7 @@
+#!/bin/sh
+openssl genrsa -des3 -out cert/server.key.orig 1024
+openssl req -new -key cert/server.key.orig -out cert/server.csr
+openssl rsa -in cert/server.key.orig -out cert/server.key
+openssl x509 -req -days 730 -in cert/server.csr -signkey cert/server.key -out cert/server.crt
+rm cert/server.key.orig
+echo "Done."

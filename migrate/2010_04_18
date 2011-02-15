@@ -1,0 +1,3 @@
+alter table transcoding_profiles ADD COLUMN extra;
+alter table transcoding_profiles ADD COLUMN player;
+

@@ -1,0 +1,61 @@
+<fieldset>
+		<legend>Server status</legend>
+		<p>
+			<table cellpadding="4">
+				<tr>
+					<td>Uptime:</td>
+					<td><%= ((Time.now - server.started) / 60).to_i %> minutes</td>
+				</tr>
+				<tr>
+					<td>Encryption:</td>
+					<td><%= server.ssl? ? "enabled" : "disabled" %></td>
+				</tr>
+				<tr>
+					<td>Authentication:</td>
+					<td><%= server.auth ? "enabled" : "disabled" %></td>
+				</tr>
+				<tr>
+					<td>Users:</td>
+					<td><%= server.usercount %></td>
+				</tr>
+				<tr>
+					<td>Shares:</td>
+					<td><%= db.shares.sql("SELECT id FROM shares").size %></td>
+				</tr>
+				<tr>
+					<td>VLC Running:</td>
+					<td><%= server.vlc.running_for_real %></td>
+				</tr>
+			 </table>
+		</p>
+</fieldset>
+<br />
+<fieldset>
+		<legend>Playing streams</legend>
+		<p>
+			<%
+				players = server.players
+				index = 0
+			%>
+			<% if players.size > 0 %>
+				<% players.each_pair do | id, player | %>
+					<% begin %>
+						<fieldset class="tiny">
+							<legend><%= player.currently_playing.name %></legend>
+							<% if server.dynknots_address %>
+								Direct share url: <input type="text" size="60" value="http://<%= player.player_id %>:<%= player.player_pass %>@<%= server.dynknots_address.split("/")[3] %>:<%= player.port %>/<%= player.stream %>" /><br />
+							<% end %>
+							<input type="button" class="button" value="Stop" onclick="forceStop('<%= id %>', <%= params["index"] %>)" />
+						</fieldset>
+						<% index += 1 %>
+					<% rescue Exception => e %>
+					<% end %>
+				<% end %>		
+			<% end %>
+			<% if index == 0 %>
+				<p>
+					Nothing playing.
+				</p>
+			<% end %>
+		</p>
+</fieldset>

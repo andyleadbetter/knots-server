@@ -1,0 +1,4 @@
+ALTER TABLE playlists ADD COLUMN hash VARCHAR;
+ALTER TABLE playlists ADD COLUMN path VARCHAR;
+DELETE FROM settings WHERE key='playlist_ext';
+INSERT INTO settings (key,value,name) VALUES("playlist_ext", "m3u,xspf,pls", "Playlist extensions");

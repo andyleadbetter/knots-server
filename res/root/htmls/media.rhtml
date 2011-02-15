@@ -1,0 +1,50 @@
+<fieldset>
+	<legend>Collection</legend>
+	<p>
+		Here you can manage your collection. You should add as many paths as possible for easier updating.<br />
+		Adding separate paths for all your different media types allows you to place them in separate categories and update only paths that have changed.
+	</p>
+	<table>
+		<tr>
+			<td valign="top">Items in collection</td>
+			<td><div id="mediacount"><strong><%= server.database.media.size %></strong></div></td>
+		</tr>
+		<tr>
+			<td valign="top">Scanned folders</td>
+			<td>
+				<select class="list" name="scanned" id="scanned" size="5" onchange="showPathCategories();">
+					<% server.database.scanned.all.each do | directory | %>
+						<option value="<%= directory.id %>"><%= directory.path %></option>
+					<% end %>
+				</select>
+			</td>
+			<td valign="top">
+				<div id="path_categories"></div>
+			</td>
+		</tr>
+	</table>
+	<br />
+	<div id="buttonsdiv" style="display:block;">
+		<input type="button" class="button" value="Add scanned folder" onclick="addDirectory()" />
+		<input type="button" class="button" value="Remove scanned folder" onclick="removeDirectory()" />
+		<% if server.settings.ffmpeg %>
+			<input type="button" class="button" value="Update collection" onclick="updateDatabase()" />
+			<input type="button" class="button" value="Update only selected" onclick="updateSelected()" />
+			<% if server.settings.mythtv1 %>
+				<input type="button" class="button" value="Update MythTV Recordings" onclick="updateMythTVRecordings()" />
+			<% end %>
+			<% if server.settings.vdr1 %>
+				<input type="button" class="button" value="Update VDR Channels" onclick="updateVDRChannels()" />
+			<% end %>
+			<% if server.settings.dreambox1 %>
+				<input type="button" class="button" value="Update Dreambox channels" onclick="updateDreamboxChannels()" />
+			<% end %>
+			<% if server.settings.dbox2_1 %>
+				<input type="button" class="button" value="Update DBox2 channels" onclick="updateDBox2Channels()" />
+			<% end %>
+		<% end %>
+		<input type="button" class="button" value="Clean up collection" onclick="vacuumDatabase()" />
+	</div>
+	<div id="waitingdiv" style="display:none;"><%= image("waiting.gif") %><p>Please wait.</p> <input type="button" class="button" value="Stop scanning" onclick="abortScanning()" /></div>
+</fieldset>
+

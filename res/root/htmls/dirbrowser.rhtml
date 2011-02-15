@@ -1,0 +1,9 @@
+<% if !params["dir"] %>
+	<h2>Browse</h2>
+	<div class="dirbrowser" id="dirbrowser">
+		<%= html("dir_contents") %>
+	</div>
+<% else %>
+	<%= html("dir_contents") %>
+<% end %>
+

@@ -1,0 +1,24 @@
+<legend class="small">Images:</legend>
+<% if @edited %>
+	Image for <%= @edited.category || @edited.tag || @edited.value %>
+	<p>
+		<% if @edited.image_id %>
+			<div align="center"><%= media_screenshot(nil, nil, nil, 40, false, true, nil, @edited.image_id) %></div><br />
+		<% else %>
+			<p>No image set.</p>
+		<% end %>
+		<input type="button" id="upload_button2" class="button" value="Set image" />
+		<% if @edited.image_id %>
+			<input type="button" class="button" value="Delete image" onclick="deleteImage('<%= params["type"]%>')" />
+		<% end %>
+		<% if params["id"] && params["type"] %>
+			<script type="text/javascript">
+				setTimeout("new AjaxUpload('upload_button2', {action: '/root/update_category_tag_image', data: {type: '<%= params["type"] %>', id: <%= params["id"] %>}, onComplete: function(file, response) {reloadImage('<%= params["type"] %>')}});", 200);
+			</script>
+		<% end %>
+	</p>
+<% else %>
+	No category / tag selected.
+<% end %>
+
+

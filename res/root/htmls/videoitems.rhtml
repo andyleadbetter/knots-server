@@ -1,0 +1,21 @@
+<% if @items.size > 0 %>
+	<% @items.each_with_index do | item, i | %>
+		<%
+			@item = item
+			@i = i
+		%>
+		<div id="edit_<%= @item.id %>" class="video_extra">
+			<div id="item_<%= @item.id %>" class="video">
+				<%= html("item") %>
+			</div>
+			<div class="item_extra">
+				<%= html("edit_item") %>
+			</div>
+		</div>
+	<% end %>
+<% else %>
+	<p>
+		No results.
+	</p>
+<% end %>	
+</form>

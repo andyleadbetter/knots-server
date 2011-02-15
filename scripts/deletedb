@@ -1,0 +1,15 @@
+#!/bin/sh
+if [ $(whoami) != "root" ]
+then
+	echo "Are you sure you want to delete your media database? (yes/no)"
+	read reply
+	if [ x"$reply" = xyes ]; then
+		rm ~/.config/knots2/knots.db
+		echo "Please restart the server"
+	else
+		echo "Database not deleted"
+	fi
+else
+  echo "Don't run this script as root"
+  exit 0
+fi

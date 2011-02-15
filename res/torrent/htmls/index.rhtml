@@ -1,0 +1,10 @@
+<h2>Torrents</h2>
+<% @torrents = server.restore("torrent", "torrents") %>
+<div id="torrentlist">
+	<%= html("torrents") %>
+</div>
+<p>
+	<strong>Add a new torrent</strong>
+</p>
+<input type="text" class="text" name="address" id="address" value="http://" onclick="document.getElementById('address').value = ''" />
+<input type="button" class="button" value="Add" onclick="add_torrent()" />

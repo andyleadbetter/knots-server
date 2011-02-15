@@ -1,0 +1,15 @@
+<legend class="small">New item:</legend>
+URL: <input type="text" class="text" name="new_url" id="new_url" /><br />
+Type: <select name="new_type" id="new_type">
+	<option value="0">Video</option>
+	<option value="1">Audio</option>
+</select>
+Category: <select name="new_category" id="new_category">
+	<% server.database.categories.all(:order => "category").each do | category | %>
+		<option value="<%= category.id %>"><%= category.category %></option>
+	<% end %>
+</select>
+<br />
+Name: <input type="text" id="new_name" name="new_name" />
+<br /><br />
+<input type="button" class="button" value="Add to collection" onclick="addNewItem()" />

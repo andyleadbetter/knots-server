@@ -1,0 +1,33 @@
+<div style="background:#111;width:<%= @player ? @player.video_width : "100%" %>px;height:20px;">
+<% position = @player ? @player.position : 1.0 %>
+<% if position && position < 1.0 %>
+	<img src="/progress.gif" width="<%= (@player.video_width * position).to_i %>" height="20" />
+<% else %>
+	Finished
+	<script language="text/javascript">
+		if (poller != null)
+			poller.stop();
+	</script>
+<% end %>
+</div>
+<div style="background:#000;color:white;font-size:9t;height:20px;padding-top:3px;">
+	<% if position && position < 1.0 %>
+		<%= Common.position_for_ffmpeg(position * (@player.duration || 0)) %> / <%= Common.position_for_ffmpeg(@player.duration) %>
+	<% end %>
+</div>
+<script>
+	finished = <%= position && position < 1.0 ? "false" : "true" %>;
+	playing = <%= @player ?  @player.currently_playing.id : -1 %>;
+	if (finished || playing != currently_playing)
+	{
+		currently_playing = playing;
+		updatePlaying(player_id);
+		if (playing != -1)
+		{
+			showItemTags(currently_playing);
+		}
+		
+	}
+</script>
+	
+

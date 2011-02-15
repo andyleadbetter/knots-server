@@ -1,0 +1,92 @@
+<% if user.admin %>
+	<form method="post" action="/root/settings" id="settings_root" onsubmit="return false;">
+		<input type="hidden" name="save" value="true" />
+		<fieldset>
+			<legend>Settings</legend>
+			<p>
+				Mandatory settings (Directory for temporary files, Full path to FFmpeg and Full path to VLC)<br />are automatically detected. If they are missing, please fill them and restart the server.
+			</p>
+			<%
+			bools = ["webrick_ssl", "show_images", "force_auth", "screenshot", "external_screenshot", "subtitles", "dirname_tagging", "devel", "new_vlc", "disable_aspect", "resume_shot", "enable_resume", "random_category_images", "save_session"]
+			
+				spinners = {
+					"log_level" => [0,3],
+					"curl_timeout" => [2,10],
+					"pageitems" => [1,100],
+					"vlc_timeout" => [5, 30]
+				}
+			%>
+			<table>
+				<tr>
+					<td colspan="2"><h3>Basic settings</h3></td>
+				</tr>
+				<% advanced = Array.new %>
+				<% server.database.settings.all(:order => "name").each do | setting | %>
+					<% if setting.name %>
+						<tr>
+							<td><%= setting.name %></td>
+							<td>
+								<% if bools.include?(setting.key) %>
+									<select class="dropdown" name="<%= setting.key %>">
+										<option value="1"<%= setting.value.to_i == 1 ? " selected=\"selected\"" : ""%>>Yes</option>
+										<option value="0"<%= setting.value.to_i == 0 ? " selected=\"selected\"" : ""%>>No</option>
+									</select>
+								<% elsif spinners.has_key?(setting.key) %>
+									<select class="dropdown" name="<%= setting.key %>">
+										<% (spinners[setting.key][1] - spinners[setting.key][0] + 1).times do | i | %>
+											<option value="<%= i + spinners[setting.key][0] %>"<%= (i + spinners[setting.key][0]) == setting.value.to_i ? " selected=\"selected\"" : "" %>><%= i + spinners[setting.key][0] %></option>
+										<% end %>
+									</select>
+								<% else %>
+									<input type="text" class="text" name="<%= setting.key %>" value="<%= setting.value %>" size="<%= setting.value ? setting.value.length + 1 : 10 %>">
+								<% end %>
+							</td>
+						</tr>
+					<% else %>
+						<% advanced.push(setting) %>
+					<% end %>
+				<% end %>
+				<% if advanced.size > 0 %>
+					<tr>
+						<td colspan="2"><h3>Advanced settings</h3></td>
+					</tr>
+					<% advanced.each do | setting | %>
+						<tr>
+							<td><%= setting.key %></td>
+							<td>
+								<% if bools.include?(setting.key) %>
+									<select class="dropdown" name="<%= setting.key %>">
+										<option value="1"<%= setting.value.to_i == 1 ? " selected=\"selected\"" : ""%>>Yes</option>
+										<option value="0"<%= setting.value.to_i == 0 ? " selected=\"selected\"" : ""%>>No</option>
+									</select>
+								<% elsif spinners.has_key?(setting.key) %>
+									<select class="dropdown" name="<%= setting.key %>">
+										<% (spinners[setting.key][1] - spinners[setting.key][0] + 1).times do | i | %>
+											<option value="<%= i + spinners[setting.key][0] %>"<%= (i + spinners[setting.key][0]) == setting.value.to_i ? " selected=\"selected\"" : "" %>><%= i + spinners[setting.key][0] %></option>
+										<% end %>
+									</select>
+								<% else %>
+									<input type="text" class="text" name="<%= setting.key %>" value="<%= setting.value %>" size="<%= setting.value ? setting.value.length + 1 : 10 %>">
+								<% end %>
+							</td>
+						</tr>
+					<% end %>
+				<% end %>
+			</table>
+			<br />
+			<% notice = "" %>
+			<%
+				notice += "Encryption requires a server restart. Remember to use http<strong>s</strong> next time you login.<br />" if server.settings.webrick_ssl.to_i == 1 && !server.ssl?
+				notice += "Disabling encryption requires a server restart. Remember to use http next time you login.<br />" if server.settings.webrick_ssl.to_i == 0 && server.ssl?
+				notice += "Changing port requires a server restart. Remember to change the port on address bar." if server.settings.webrick_port.to_i != server.port
+				if notice.strip.length > 0
+			%>
+				<div class="alert"><%= notice %></div>
+			<% end %>
+			<br /><input type="button" class="button" value="Save settings" onclick="saveSettings()" /> 
+			<input type="button" class="button" value="Add a new setting" onclick="addSetting()" />
+			<input type="button" class="button" value="Add a personal video recorder", onclick="addPVR()" />
+			<input type="button" class="button" value="Reset settings" onclick="resetSettings()" />
+		</fieldset>
+	</form>
+<% end %>

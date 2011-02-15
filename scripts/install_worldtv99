@@ -1,0 +1,120 @@
+#!/usr/bin/env ruby
+require 'net/http'
+require 'uri'
+require 'fileutils'
+require 'rexml/document'
+include REXML
+
+class DummyServer
+	def initialize
+		@db = KnotsDB.new(File.join(ENV["HOME"], ".config", "knots2", "knots.db"))
+		@settings = db.settings.all.combine("key", "value")
+	end
+	
+	def settings
+		@settings
+	end
+	
+	def database
+		@db
+	end
+	
+	def method_missing(*args)
+	end
+	
+	alias :db :database
+end
+
+class InstallWorldTV
+		
+	def initialize
+		if RUBY_VERSION >= "1.9.2"
+			@knots_dir = File.expand_path(File.dirname(File.dirname(__FILE__)))
+			$LOAD_PATH.push(@knots_dir) if !$LOAD_PATH.include?(@knots_dir)
+		end
+		require 'lib/db'
+		require 'lib/common'
+		require 'lib/collection'
+		if !File.exists?(File.join(ENV["HOME"], ".config", "knots2", "knots.db"))
+			puts "Please setup Knots first"
+			return
+		end
+		install
+		ENV["HOME"] = File.dirname(__FILE__) if !ENV["HOME"] # For windows
+	end
+	
+	def install
+		f = File.new("#{ENV["HOME"]}/.worldtv_#{Time.now.strftime("%Y%m%d%H%M%S")}", "w")
+		target = File.join(ENV["HOME"], ".config", "knots2", "WorldTV99.xml")
+		if File.exists?(File.dirname(target))
+			begin
+				dirlist = fetch("http://repository.maemo.org/extras-devel/pool/fremantle/free/source/w/worldtv99/").body
+				latest = dirlist.scan(/<a\shref=\"([^\"]*)\">(.*)<\/a>/si).flatten.uniq.delete_if{|name| (!name.downcase.index(".tar.gz") || !name.downcase.index("worldtv"))}.sort.last
+				if latest && latest.strip != ""
+					puts "Fetching #{latest}."
+					f.write(fetch("http://repository.maemo.org/extras-devel/pool/fremantle/free/source/w/worldtv99/#{latest}").body)
+					f.close
+					if Common.osx?
+						system("tar -xzf #{f.path} --include *WorldTV99.xml* -O > #{target}")
+					else
+						system("tar -xzf #{f.path} --no-anchored WorldTV99.xml -O > #{target}")
+					end	
+					if File.exists?(target)
+						add_playlist(target)
+					else
+						puts "Error installing WorldTV99. Try again later."
+					end
+					
+					
+				else
+					puts "Unable to find the WorldTV99 source"
+				end
+			rescue Exception => e
+				puts "Cannot install WorldTV99: #{e.message}\n#{e.backtrace.join("\n")}"
+			end
+		else
+			puts("Please setup Knots first")
+		end
+		FileUtils.rm(f.path)
+	end
+	
+	def add_playlist(filename)
+		ds = DummyServer.new
+		ds.settings["external_screenshot"] = 0
+		collection = Collection.new(ds)
+		category = collection.add_category("WorldTV99")
+		groups = Array.new
+		doc2 = Document.new(File.new(filename).read)
+		e = doc2.root
+		while e.elements["group"]
+			e.each_element("group") do | ee |
+				groups.push(ee)
+				e = ee
+			end
+		end
+		i = 0
+		groups.each do | e |
+			e.each_element("item") do | element |
+				if element.attributes["url"] && element.attributes["url"].strip != ""
+					item = ds.database.media.by_path("LIKE \"#{element.attributes["url"]}\"").first
+					if !item
+						puts "Adding: #{element.attributes["title"]}"
+						collection.add_video_item(element.attributes["url"], {:name => element.attributes["title"], :duration => -1, :category => category.id, :mediatype => 2, :size => -1, :modified => Time.now, :directory_changed => Time.now})
+					end
+				end
+			end
+		end
+	end
+	
+	def fetch(uri_str, limit = 10)
+		raise ArgumentError, 'HTTP redirect too deep' if limit == 0
+		response = Net::HTTP.get_response(URI.parse(uri_str))
+		case response
+			when Net::HTTPSuccess     then response
+			when Net::HTTPRedirection then fetch(response['location'], limit - 1)
+		else
+			response.error!
+		end
+	end
+end
+InstallWorldTV.new

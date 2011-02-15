@@ -1,0 +1,24 @@
+<h2>Tags</h2>
+<p>
+	<% tags = server.database.tags.sql("SELECT tags.tag,tags.id AS tid,tag_values.value,tag_values.id AS vid,media_tags.id AS mid FROM tags,tag_values,media_tags WHERE media_tags.media_id=#{@item.id} AND media_tags.tag_id=tag_values.id AND tag_values.tag_id=tags.id ORDER BY tags.tag,tag_values.value") %>
+	<% if tags.size > 0 %>
+		<% tag_name = "" %>
+		<% tags.each do | tag | %>
+			<% if tag_name != tag.tag %>
+			<strong class="tag"><%= tag.tag.split("_").collect!{|t| t = t.capitalize}.join(" ") %></strong>
+					<% tag_name = tag.tag %>
+			<% end %>
+			<span class="tag"><%= tag.value %> <% if params["edit"] %><a href="#" class="browselist" onclick="removeTagValueFromMedia(<%= tag.mid %>, <%= @item.id %>);return false;">[Remove]</a><% end %></span>
+		<% end %>
+	<% else %>
+		<p>No tags</p>
+	<% end %>
+	<% if params["edit"] && user.admin %>
+		<p>Tag:<br />
+			<input type="text" class="text" name="tag" id="tag" value="" /><br />
+			Value:<br />
+			<input type="text" class="text" name="value" id="value" value="" /><br /><br />
+			<input type="button" class="button" value="Add" onclick="addTagValueToMedia(<%= @item.id %>);" />
+		</p>
+	<% end %>
+</p>

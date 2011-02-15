@@ -1,0 +1,9 @@
+<h2>Search results for <%= @item.name %></h2>
+<% if @result %>
+	<% @result.each do | result | %>
+		<a href="#" onclick="downloadSub(<%= @item.id %>, <%= result["IDSubtitleFile"] %>, '<%= File.extname(result["SubFileName"]) %>');return false;"><%= result["SubFileName"] %> <%= result["LanguageName"] %></a><br />
+	<% end %>
+<% else %>
+	<p>No results.</p>
+<% end %>
+<input type="button" class="button" value="Close" onclick="closeLightbox();" />

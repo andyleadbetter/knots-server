@@ -1,0 +1,27 @@
+<fieldset>
+	<legend>Remote discovery</legend>
+	<% if server.settings.dynknots_key %>
+	Last update: <%= server.settings.dynknots_last_update ? Time.at(server.settings.dynknots_last_update.to_f) : "Not updated yet." %>
+	<div id="checkdynbtn">
+		<br />
+		<input type="button" value="Check server accessibility from the internet" onclick="checkServerAccessibility()" class="button">
+	</div>
+	<div id="checkdynresult"></div>
+	<% else %>
+		<p>
+			If you have a dynamic IP address, you can register to a Knots remote discovery service to easily access your server from outside your network.
+		</p>
+		<strong>Register / Login</strong>
+		<p>
+			Username:<br />
+			<input type="text" name="dynknotsuser" id="dynknotsuser" class="text" /><br />
+			Password:<br />
+			<input type="password" name="dynknotspwd" id="dynknotspwd" class="text" /><br />
+			Password again:<br />
+			<input type="password" name="dynknotspwd2" id="dynknotspwd2" class="text" /><br /><br />
+			<input type="button" class="button" value="Register" onclick="registerDynKnots()" /> <input type="button" class="button" value="Login" onclick="loginDynKnots()" />
+		</p>
+	<% end %>
+	<div id="dynknotsinfo"></div>
+</fieldset>
+

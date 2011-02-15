@@ -1,0 +1,29 @@
+echo "Please enter the MythTV server order number (1)"
+read number
+if [ x"$number" = x ]; then
+	number=1
+fi
+echo "Please enter the MythTV server ip"
+read ip
+if [ x"$ip" = x ]; then
+	echo "Exiting. No ip defined."
+	exit
+fi
+echo "Please enter the MythTV username (mythtv)"
+read username
+if [ x"$username" = x ]; then
+	username="mythtv"
+fi
+echo "Please enter the MythTV password"
+read password
+echo "Please enter the MythTV database name (mythconverg)"
+read database
+if [ x"$database" = x ]; then
+	database="mythconverg"
+fi
+echo "Please enter the encoding MythTV uses (iso-8859-1)"
+read charset
+if [ x"$charset" = x ]; then
+	charset="iso-8859-1"
+fi
+./scripts/setup "mythtv$number" "$ip,$username,$password,$database,$charset" "Settings for mythtv$number"

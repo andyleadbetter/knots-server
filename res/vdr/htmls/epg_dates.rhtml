@@ -1,0 +1,10 @@
+<ul class="vdrlist">
+	<% if @dates.size > 0 %>
+		<% @dates.each do | date | %>
+			<a class="vdrlist" href="#" onclick="programsForDate('<%= params["vdr"] %>','<%= CGI::escape(params["channel"]) %>', '<%= date %>');return false;"><%= Date::DAYNAMES[Date.parse(date).wday] %> (<%= date %>)</a>
+			<div class="hiddendiv" id="epg_<%= CGI::escape(params["channel"]) %>_<%= date %>"></div>
+		<% end %>
+	<% else %>
+		No epg.
+	<% end %>
+</ul>

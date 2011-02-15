@@ -1,0 +1,29 @@
+<h2>Latest</h2>
+<% latest = server.collection.latest(10, user) %>
+<% if latest.size > 0 %>
+	<% latest.each do | latest |  %>
+		<% @item = latest %>
+		<div class="video_extra">
+			<div id="item_<%= @item.id %>" class="video">
+				<%= html("item") %><br />
+			</div>
+			<div class="item_extra">
+				<input type="button" class="button" value="Play" onclick="play(<%= @item.id %>)" />
+				<% if server.collection.is_audio_file?(@item.path) %>
+					<input type="button" class="button" value="Play artist" onclick="playArtist(<%= @item.id %>)" />
+					<input type="button" class="button" value="Play album" onclick="playAlbum(<%= @item.id %>)" /><br />
+				<% else %>
+					<br />
+				<% end %>
+				<% if user.admin %>
+					<input type="button" class="button" value="Add to playlist" onclick="addToPlaylist(<%= @item.id %>)" />
+					<% if server.settings.dynknots_key && db.shares %>
+						<input type="button" class="button" value="Share" onclick="shareItem(<%= @item.id %>, null)" />
+					<% end %>
+				<% end %>
+			</div>
+		</div>
+	<% end %>
+<% else %>
+	<p>No media.</p>
+<% end %>

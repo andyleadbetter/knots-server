@@ -1,0 +1,25 @@
+Items under this folder: <strong><%= db.media.sql("SELECT count(id) AS amount FROM media WHERE path like \"#{@path.path}%\"").first.amount %></strong><br />
+Place video files in category:<br />
+<select name="path_category0" id="path_category0" onchange="changeCategoryForPath(<%= params["id"] %>, 0);">
+	<option value="-1">Do not scan</option>
+	<% @categories.each do | category | %>
+		<option value="<%= category.id %>"<%= @path.video_category == category.id ? " selected=\"selected\"" : "" %>><%= category.category %></option>
+	<% end %>
+</select>
+<p>
+Place audio files in category:<br />
+<select name="path_category1" id="path_category1" onchange="changeCategoryForPath(<%= params["id"] %>, 1);">
+	<option value="-1">Do not scan</option>
+	<% @categories.each do | category | %>
+		<option value="<%= category.id %>"<%= @path.audio_category == category.id ? " selected=\"selected\"" : "" %>><%= category.category %></option>
+	<% end %>
+</select>
+</p>
+Place image files in category:<br />
+<select name="path_category2" id="path_category2" onchange="changeCategoryForPath(<%= params["id"] %>, 2);">
+	<option value="-1">Do not scan</option>
+	<% @categories.each do | category | %>
+		<option value="<%= category.id %>"<%= @path.image_category == category.id ? " selected=\"selected\"" : "" %>><%= category.category %></option>
+	<% end %>
+</select>
+</p>

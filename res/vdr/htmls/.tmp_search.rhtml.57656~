@@ -1,0 +1,14 @@
+<br />
+<ul class="vdrlist">
+	<% @programs.each_with_index do | program, i | %>
+		<%= program[1] %> - <%= program[2].strftime("%Y-%m-%d") %> - <%= program[4] %><br />
+		<div style="display:block;" class="vdrprogram" id="epg_<%= i %>">
+			Starts: <%= program[2].strftime("%H:%M") %><br />
+			Ends: <%= program[3].strftime("%H:%M") %>
+			<p>
+				<%= program[5].gsub("\n", "<br />") %>
+			</p>
+			<input type="button" class="button" onclick="schedule(<%= program[0] %>, '<%= CGI::escape(program[1]) %>', '<%= program[2].strftime("%Y-%m-%d") %>', '<%= program[2].strftime("%H:%M") + "-" + program[3].strftime("%H:%M") %>', '<%= CGI::escape(program[4]) %>');return false;" value="Schedule" />
+		</div>
+	<% end %>
+</ul>

@@ -1,0 +1,56 @@
+#!/usr/bin/env ruby
+begin
+	if RUBY_VERSION >= "1.9.2"
+		@knots_dir = File.expand_path(File.dirname(File.dirname(__FILE__)))
+		$LOAD_PATH.push(@knots_dir) if !$LOAD_PATH.include?(@knots_dir)
+	end
+	require 'lib/db'
+	require 'lib/common'
+rescue	Exception => ex
+	puts "This script must be run from the knots root"
+	exit
+end
+require 'fileutils'
+
+class Setup
+	def initialize
+		database = Common.load_database(false)
+		if ARGV.size == 0
+			puts "Usage: setup key [value] [name]"
+			database.settings.all.each do | setting |
+				puts "#{setting.key} #{setting.value} = #{setting.name}"
+			end
+		elsif ARGV.size == 1
+			settings = database.settings.by_key("='#{ARGV[0].strip}'")[0]
+			if !settings
+				settings = database.settings.all.combine("key", "value")
+				settings.each_pair do | key, pair |
+					puts "#{key} => #{pair}"
+				end
+			else
+				puts "#{settings.key} => #{settings.value}"
+			end
+		elsif ARGV.size == 2 || ARGV.size == 3
+			settings = database.settings.by_key("='#{ARGV[0].strip}'")[0]
+			if settings
+				settings.value = ARGV[1]
+				settings.name = ARGV[2] if ARGV[2]
+				settings.save
+				puts "#{ARGV[0]} => #{ARGV[1]}"
+			else
+				if ARGV.size == 2
+					puts "Unknown setting: #{ARGV[0]}"
+				else
+					settings = database.settings.new
+					settings.key = ARGV[0]
+					settings.value = ARGV[1]
+                                	settings.name = ARGV[2]
+	                                settings.save
+        	                        puts "#{ARGV[0]} => #{ARGV[1]}"
+				end
+			end
+		end
+	end
+end
+Setup.new
+

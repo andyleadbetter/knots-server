@@ -1,0 +1,28 @@
+<input type="hidden" name="save" value="true" />
+<fieldset>
+	<legend>Transcoding profiles</legend>
+	<p>
+		Here you can alter transcoding profiles. See <a href="http://www.videolan.org/streaming-features.html" target="_blank">Videolan</a> site for more info about <a href="http://wiki.videolan.org/Codec" target="_blank">codecs</a>.
+	</p>
+		<table>
+		<% db.transcoding_profiles.all.each do | profile | %>
+			
+			<tr>
+				<td valign="top"><a href="#" onclick="toggleVisibility('profile_<%= profile.id %>');return false;"><%= profile.name %></a></td>
+				<td valign="top">
+					<form method="post" action="/root/save_transcoding_profile" id="transcodingform_<%= profile.id %>">
+						<div id="profile_<%= profile.id %>" style="display:<%= !params["open"] || params["open"].to_i != profile.id ? "none" : "block" %>;">
+							<% @profile = profile %>
+							<%= html("profile") %>
+						</div>
+					</form>
+				</td>
+			</tr>
+			
+		<% end %>
+	</table>
+	<br />
+	<input type="button" class="button" value="New profile" onclick="newTranscodingProfile()" />
+	<input type="button" class="button" value="Reset profiles" onclick="resetTranscodingProfiles()" />
+</fieldset>
+

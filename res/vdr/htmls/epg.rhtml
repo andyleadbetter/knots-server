@@ -1,0 +1,21 @@
+<div style="padding:10px;">
+	<h2>EPG</h2>
+	Search: <input type="search" class="search" id="vdr_searchfield" onkeyup="searchEPG(event)"/><br />
+	<div id="epg">
+		<% @epg.each_pair do | name, epg | %>
+			<h3>VDR<%= name %></h3>
+			<% epg[0].each_pair do | channel, info | %>
+				<a class="vdrlist" href="#" onclick="datesForChannel(<%= name %>,'<%= CGI::escape(channel) %>');return false;"><%= channel %></a>
+				<div class="hiddendiv" id="epg_<%= CGI::escape(channel) %>"></div>
+			<% end %>
+			<%
+				timers = fetch_timers(server.settings["vdr#{name}"].split(","))
+				if timers.size > 0
+					%>
+						<h4>Timers</h4>
+					<%
+				end
+			%>
+		<% end %>
+	</div>
+</div>

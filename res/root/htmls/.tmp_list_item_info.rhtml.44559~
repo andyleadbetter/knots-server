@@ -1,0 +1,45 @@
+<table cellpadding="0" border="0" cellpadding="0" cellspacing="0" class="browselist_table">
+	<td>
+		<a href="#" onclick="lightbox('/root/show_video?id=<%= @item.id %>');return false;"><%= @item.name.truncate(80) %></a>
+	</td>
+	<% if @item.mediatype == 1 %>
+		<% tags = collection.tags_for_item(@item.id) %>
+		<% if tags.artist %>
+			<td class="key" valign="top">Artist:</td>
+			<td>
+				<% tags.artist.each do | artist | %>
+					<a href="#" class="small" onclick="searchBy(';artist=<%= artist %>', 1);return false;"><strong><%= artist %></strong></a>&nbsp;
+				<% end %>
+			</td>
+		<% end %>
+		<% if tags.album %>
+			<td class="key" valign="top">Album:</td>
+			<td>
+				<% tags.album.each do | album | %>
+					<a href="#" class="small" onclick="searchBy(';album=<%= album %>', 1);return false;"><strong><%= album %></strong></a>&nbsp;
+				<% end %>
+			</td>
+		<% end %>
+	<% end %>
+	<td>Added:</td><td><strong><%= @item.added.strftime("%Y-%m-%d") %></strong></td>
+	<td><%= ["Views", "Play count", "Views", "Views"][@item.mediatype] %>:</td><td><strong><%= @item.views %></strong></td>
+	<td>Rating:</td><td><%= @item.rating %></td>
+	<% if @item.mediatype != Knots::ITEM_TYPE_AUDIO %>
+		<td>Resolution:</td><td><strong><%= @item.width && @item.height ? "#{@item.width}x#{@item.height}" : "Unknown" %></strong></td>
+		<td>Aspect:</td><td><strong><%= @item.aspect || "Unknown" %></strong></td>
+	<% end %>
+	<% if @item.duration %>
+		<td><%= @item.position == 0 ? "Duration" : "<a href=\"#\" onclick=\"removeResumepoint(#{@item.id});return false;\">Position</a>" %>:</td><td><strong><%= @item.position != 0 ? "#{Common.position_for_ffmpeg(@item.duration * @item.position)} / " : "" %><%= @item.duration && @item.duration > 0 ? Common.position_for_ffmpeg(@item.duration) : "Unknown" %></strong></td>
+	<% end %>
+	<td><input type="button" class="browselist_button" value="Play" onclick="play(<%= @item.id %>)" /></td>
+	<% if server.collection.is_audio_file?(@item.path) %>
+		<td><input type="button" class="browselist_button" value="Play artist" onclick="playArtist(<%= @item.id %>)" /></td>
+		<td><input type="button" class="browselist_button" value="Play album" onclick="playAlbum(<%= @item.id %>)" /></td>
+	<% end %>
+	<% if user.admin %>
+		<td><input type="button" class="browselist_button" value="Add to playlist" onclick="addToPlaylist(<%= @item.id %>)" /></td>
+		<% if server.settings.dynknots_key && db.shares %>
+			<td><input type="button" class="browselist_button" value="Share" onclick="shareItem(<%= @item.id %>, null)" /></td>
+		<% end %>
+	<% end %>
+ </table>

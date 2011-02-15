@@ -1,0 +1,38 @@
+echo "Please enter the Dreambox server order number (1)"
+read number
+if [ x"$number" = x ]; then
+	number=1
+fi
+echo "Please enter the Dreambox server ip"
+read ip
+if [ x"$ip" = x ]; then
+	echo "Exiting. No ip defined."
+	exit
+fi
+echo "Please enter the Dreambox server control port (80)"
+read control
+if [ x"$control" = x ]; then
+	control="80"
+fi
+echo "Please enter the Dreambox stream port (31344)"
+read stream
+if [ x"$stream" = x ]; then
+	stream="31344"
+fi
+echo "Please enter the Dreambox username (root)"
+read user
+if [ x"$user" = x ]; then
+        user="root"
+fi
+echo "Please enter the Dreambox password (dreambox)"
+read pass  
+if [ x"$pass" = x ]; then
+        pass="dreambox"
+fi
+echo "Which enigma (1 or 2) do you have? (1)"
+read enigma 
+if [ x"$enima" = x ]; then
+        enimga="1"
+fi
+./scripts/setup "dreambox$number" "$ip,$control,$stream,$user,$pass,$enigma" "Settings for dreambox$number"
+echo "Done. To scan the channels faster set 'Capture screenshots for external urls' to 0 in the settings before scanning the channels."

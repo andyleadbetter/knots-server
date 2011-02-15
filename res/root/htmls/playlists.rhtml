@@ -1,0 +1,12 @@
+<legend class="small">Import playlist:</legend>
+	Category for new items:
+	<select name="plcat" id="plcat" onchange="selectPlaylistCategory()">
+		<option value="-">-</option>
+		<% server.database.categories.all(:order => "category").each do | category | %>
+			<option value="<%= category.id %>"><%= category.category %></option>
+		<% end %>
+	</select>
+	<div id="pldiv" style="display:none;">
+		<input type="button" id="upload_button3" class="button" value="Select playlist" />
+	</div>
+

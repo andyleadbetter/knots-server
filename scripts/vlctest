@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+begin
+	if RUBY_VERSION >= "1.9.2"
+		@knots_dir = File.expand_path(File.dirname(File.dirname(__FILE__)))
+		$LOAD_PATH.push(@knots_dir) if !$LOAD_PATH.include?(@knots_dir)
+	end
+	if ARGV[0]
+		require "lib/db"
+		require "lib/common"
+		ARGV[1] = "N900" if !ARGV[1]
+		db = Common.load_database(false)
+		settings = db.transcoding_profiles.by_name(" LIKE \"%#{ARGV[1]}%\"").first
+		if settings
+			puts "Using profile #{settings.name}, access stream at http://localhost:19780/stream.#{settings.stream_extension || settings.mux}"
+			puts "VLC is started with:\n"
+			puts "\"#{db.settings.by_key("=\"vlc\"").first.value}\" '#{ARGV[0]}' -vvv --sout='#transcode{vfilter=canvas{width=#{settings.width},height=#{settings.height}},audio-sync,vcodec=#{settings.video_format},vb=#{settings.video_bitrate},acodec=#{settings.audio_format},ab=#{settings.audio_bitrate},channels=#{settings.audio_channels},samplerate=#{settings.audio_rate},fps=#{settings.fps}}:rtp{sdp=rtsp://:8080/stream.sdp}}'"
+			sleep 5
+			IO.popen("\"#{db.settings.by_key("=\"vlc\"").first.value}\" '#{ARGV[0]}' -vvv --sout='#transcode{vfilter=canvas{width=#{settings.width},height=#{settings.height}},audio-sync,vcodec=#{settings.video_format},vb=#{settings.video_bitrate},acodec=#{settings.audio_format},ab=#{settings.audio_bitrate},channels=#{settings.audio_channels},samplerate=#{settings.audio_rate},fps=#{settings.fps}}:rtp{sdp=rtsp://:8080/stream.sdp}}'")
+			Process.wait
+			system("killall -9 #{File.basename(db.settings.by_key("=\"vlc\"").first.value)} 2> /dev/null")
+		end
+	else
+		puts "Usage: ./scripts/vlctest filename [profile]"
+	end
+rescue Exception => ex
+	puts ex.message
+	puts ex.backtrace.join("\n")
+	system("killall -9 #{File.basename(db.settings.by_key("=\"vlc\"").first.value)} 2> /dev/null")
+end
+

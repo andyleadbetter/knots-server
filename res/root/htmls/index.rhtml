@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" >
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Knots</title>
+	<%= javascript("prototype.js") %>
+	<%= javascript("ajaxupload.js") %>
+	<%= javascript("effects.js") %>
+	<%= javascript("dragdrop.js") %>
+	<%= javascript("flowplayer.js") %>
+	<% server.plugins.keys.each do | plugin | %>
+		<%= stylesheet("#{plugin}.css", plugin) %>
+		<%= javascript("#{plugin}.js", plugin) %>
+	<% end %>
+	<% method_count = 0 %>
+</head>
+<body>
+	<div id="light_player" class="white_content"></div><div id="fade_player" class="black_overlay"></div>
+	<div id="light" class="white_content"></div><div id="fade" class="black_overlay"></div><div id="banner" class="banner"></div>
+	<div id="top">
+		<div class="content">
+			<div id="tabs">
+				  <ul>
+					<% server.plugins.each_pair do | name, plugin | %>
+						<% if html_methods = plugin.html_methods %>
+							<% html_methods.keys.sort.each_with_index do | method, i | %>
+								<% if plugin.method_allowed?(html_methods[method], user.role) %>
+									<li><a href="#" ondblclick="ajaxLoad('main_<%= method_count %>', '<%= name %>', '<%= html_methods[method] %>', {index: <%= method_count %>});return false;" onclick="openPage(<%= method_count %>, '<%= name %>', '<%= html_methods[method] %>');return false;"><span><%= method %></span></a></li>
+									<% method_count += 1 %>
+								<% end %>
+							<% end %>
+						<% end %>
+					<% end %>
+					<li id="player_back"></li>
+					<% if server.auth && server.usercount > 1 %>
+						<li>
+							<a href="/?switch_user=true">
+								<span>Switch user (<%= request.user %>)</span>
+							</a>
+						</li>
+					<% end %>
+				  </ul>
+			</div>
+		</div>
+	</div>
+	<div id="main">
+		<% method_count.times do | i | %>
+			<div id="main_<%= i %>" style="display:<%= i != 0 ? "none" : "block" %>;"></div>
+		<% end %>
+		<% method_count = 0 %>
+		<% server.plugins.each_pair do | name, plugin | %>
+			<% if html_methods = plugin.html_methods %>
+				<% html_methods.keys.sort.each_with_index do | method, i | %>
+					<% if plugin.method_allowed?(html_methods[method], user.role) %>
+						<script>
+							waiting('main_<%= method_count %>', 'Loading');
+							new Ajax.Updater('main_<%= method_count %>', '/<%= name %>/<%= html_methods[method] %>', {method:'get', evalScripts: true, parameters: {index: <%= method_count %> }});
+						</script>
+						<% method_count += 1 %>
+					<% end %>
+				<% end %>
+			<% end %>
+		<% end %>
+	</div>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<% if !params["movieid"] %>
+	<h3>themoviedb.org</h3>
+	<div class="themoviedb">
+	Search: <input type="search" class="search" name="themoviedbsearch" id="themoviedbsearch" onkeyup="searchTheMovieDB(event, <%= params["id"] %>);" value="<%= params["search"] || @item.name %>" /><br />
+	<p>
+		<strong>Results</strong>
+	</p>
+	<p>
+		<% if @info && @info.size > 0 %>
+			<% @info.each_pair do | name, id | %>
+				<a href="#" onclick="ajaxLoad('moviedbinfo', 'root', 'themoviedb', {id: <%= @item.id %>, movieid: <%= id %>});return false;"><%= name %></a><br />
+			<% end %>
+		<% else %>
+			No results.
+		<% end %>
+	</p>
+	</div>
+	<div class="themoviedb" id="moviedbinfo"></div>
+	<br style="clear:both;" />
+	<input type="button" value="Close" onclick="lightbox('/root/show_video?id=<%= @item.id %>');" />
+<% elsif params["movieid"] %>
+	<h3>Tags</h3>
+	<% index = 0 %>
+	<form method="post" action="/root/themoviedb" onsubmit="return false;" id="moviedbform" name="moviedbform">
+		<input type="hidden" name="saveid" id="saveid" value="<%= params["id"] %>" />
+		<table>
+		<% @info.each_pair do | key, value | %>
+			<% value.each do | val | %>
+				<tr>
+					<td>
+						<input type="checkbox" name="tag_<%= index %>" checked="checked" />
+						<input type="hidden" name="key_<%= index %>" value="<%= key %>" />
+						<input type="hidden" name="value_<%= index %>" value="<%= val %>" />
+					</td>
+					<td><%= key.split("_").collect!{|t| t = t.capitalize}.join(" ")%></td>
+					<td><%= val %></td>
+				</tr>
+				<% index += 1 %>
+			<% end %>
+		<% end %>
+		</table>
+		<br />
+		<input type="button" onclick="saveTheMovieDBTags()" class="button" value="Save" />
+	</form>
+<% end %>

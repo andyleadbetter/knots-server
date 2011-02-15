@@ -1,0 +1,12 @@
+<legend class="small">Search:</legend>
+<input type="search" class="text" onkeyup="search(event)" name="edit_searchfield" id="edit_searchfield" />
+<input type="button" value="Search" class="button" onclick="search(null)" />
+<br />
+<input type="checkbox" name="ignore" id="ignore" /> Ignore selections<br />
+Limit: <select name="search_limit" id="search_limit">
+	<% 4.times do | i | %>
+		<option value="<%=  (i + 1) * 10 + 15 %>"><%= (i + 1) * 10 + 15 %></option>
+	<% end %>
+	<option value="100000">-</option>
+</select>
+<input type="button" class="button" id="toggle_button" value="Select all" onclick="toggleSelected()" />

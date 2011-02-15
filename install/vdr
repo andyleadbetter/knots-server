@@ -1,0 +1,28 @@
+echo "Please enter the VDR server order number (1)"
+read number
+if [ x"$number" = x ]; then
+	number=1
+fi
+echo "Please enter the VDR server ip"
+read ip
+if [ x"$ip" = x ]; then
+	echo "Exiting. No ip defined."
+	exit
+fi
+echo "Please enter the VDR server SVDRP port (2001)"
+read port
+if [ x"$iport" = x ]; then
+	port="2001"
+fi
+echo "Please enter the VDR Streamdev port (3000)"
+read svdrp
+if [ x"$svdrp" = x ]; then
+	svdrp="3000"
+fi
+echo "Please enter the encoding VDR uses (utf-8/iso-8859-1)"
+read charset
+if [ x"$charset" = x ]; then
+	charset="utf-8"
+fi
+./scripts/setup "vdr$number" "$ip,$port,$svdrp,$charset" "Settings for vdr$number"
+echo "Done. To scan the channels faster set 'Capture screenshots for external urls' to 0 in the settings before scanning the channels."

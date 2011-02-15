@@ -1,0 +1,37 @@
+<% if @playlist %>
+	<h2><%= @playlist.name %></h2>
+	<% if @items.size > 0 %>
+		<ul id="list_to_sort" style="font-size:9pt;">
+			<% @items.each_with_index do | item, i | %>
+				<li class="playlist" id="item_<%= item.pid %>"><%= item.name %> <a href="#" onclick="removePlaylistItem(<%= item.pid %>)" /><img src="/root/resource_file?type=image&file=fileclose.png" width="16" border="0" /></a></li>
+			<% end %>
+		</ul>
+		<% if @items.size > 1 %>
+			<script>
+			      Sortable.create("list_to_sort", {
+			      onUpdate: function() {
+			      new Ajax.Request("/root/sort_playlist", {
+			      method: "post",
+			      parameters: { data: Sortable.serialize("list_to_sort") }
+			      });
+			      }
+			      });
+			</script>
+		<% end %>
+		<br />
+		<input type="button" class="button" value="Play" onclick="playPlaylist(<%= @playlist.id %>)" />
+		<input type="button" class="button" value="Shuffle" onclick="shufflePlaylist(<%= @playlist.id %>)" />
+		<input type="button" class="button" value="Rename to" onclick="savePlaylist(<%= @playlist.id %>, '<%= @playlist.name %>')" />
+		<% if user.admin && server.settings.dynknots_key && db.shares %>
+			<input type="button" class="button" value="Share" onclick="shareItem(null, <%= @playlist.id %>)" />
+		<% end %>
+	<% else %>
+		<p>
+			Playlist is empty.
+		</p>
+	<% end %>
+	<% if @playlist.id != 1 %>
+		<input type="button" class="button" value="Delete" onclick="deletePlaylist(<%= @playlist.id %>)" />
+	<% end %>
+	<input type="button" value="Close" class="button" onclick="closeLightbox();" />
+<% end %>

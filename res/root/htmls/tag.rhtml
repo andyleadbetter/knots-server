@@ -1,0 +1,3 @@
+<div class="video_title"><a href="#" class="video" onclick="browseCategory(<%= params["category"] %>, <%= @item.id %>, null, 1);return false;"><%= @item.tag.beautify %></a></div>
+<div class="screenshot"><a href="#" class="video" onclick="browseCategory(<%= params["category"] %>, <%= @item.id %>, null, 1);return false;"><img src="/root/resource_file?<%= @item.mid ? "mid=#{@item.mid}&type=screenshot" : "type=image&file=no_shot0.png" %>" border="0" /></a></div>
+

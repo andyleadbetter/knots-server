@@ -1,0 +1,44 @@
+<fieldset>
+	<legend>Shares</legend>
+	<p>
+		<strong>Because all your shared media is on your computer, don't share it with people you don't trust.</strong>
+	</p>
+	<% if db.shares && db.shares.size > 0 %>
+		<% data = server.dynknots_address %>
+		<% if data %>
+			<table cellpadding="5">
+				<tr>
+					<td>Share:</td>
+					<td>Type:</td>
+					<td>Created:</td>
+					<td>URL:</td>
+					<td>Transcoding profile:</td>
+					<td>&nbsp;</td>
+				</tr>
+				<% db.shares.sql("SELECT shares.*,playlists.name AS pname,media.name AS mname FROM shares LEFT JOIN playlists ON playlists.id = shares.playlist_id LEFT JOIN media ON media.id = shares.media_id ORDER BY created").each_with_index do | share, i | %>
+					<% url = "http#{server.settings.webrick_ssl.to_i == 0 ? "" : "s"}://#{share.key}:#{share.key}@#{data.split("/")[3]}:#{server.settings.webrick_port}/root/share?key=#{share.key}" %>
+					<tr>
+						<td><%= share.mname || share.pname %></td>
+						<td><%= share.media_id ? "Single item" : "Playlist" %></td>
+						<td><%= share.created.strftime("%Y-%m-%d %H:%M:%S") %></td>
+						<td><input type="text" class="text" value="<%= url %>" size="<%= url.size %>" /></td>
+						<td>
+							<select id="share_tp" name="share_tp" onchange="changeShareProfile(<%= share.id %>);">
+								<option value="-1">All</option>
+								<% db.transcoding_profiles.all.each do | profile | %>
+									<option value="<%= profile.id %>"<%= Common.to_int(share.transcoding_profile) == profile.id.to_i ? " selected=\"selected\"" : "" %>><%= profile.name %></option>
+								<% end %>
+							</select>
+						</td>
+						<td><input type="button" class="button" value="Remove" onclick="removeShare(<%= share.id %>)" /></td>
+					</tr>
+				<% end %>
+			</table>
+		<% else %>
+			<p>Unable to resolve your public address. Please check your remote discovery settings.</p>
+		<% end %>
+	<% else %>
+		No shares. You can share media and playlists by clicking on the share button. Sharing is enabled after you login to remote discovery.
+	<% end %>
+</fieldset>
+

@@ -1,0 +1,21 @@
+<h3>
+<%
+	dirs = @dir.split("/")
+	if dirs.size > 1
+		dirs.each_with_index do | dir, i | %><%= i > 1 ? "/" : "" %><a href="#" onclick="switchToDir('<%= CGI::escape(File.join("/", dirs[0, i + 1])) %>');return false;"><%= dir != "" ? dir : "/" %></a><% end %>
+	<% else	%>/<% end %></h3>
+<a href="#" onclick="switchToDir('<%= CGI::escape(File.dirname(@dir) || "/") %>');return false;">Back</a><br />
+<a href="#" onclick="switchToDir('<%= CGI::escape(@dir) %>');return false;">Refresh</a><br />
+<a href="#" onclick="addScanDirectory('<%= CGI::escape(@dir) %>');return false;">Add this folder to scanned folders</a><br />
+<a href="#" onclick="switchToNewDir('<%= File.dirname(@dir) || "/" %>');return false;">Switch drive/folder</a>
+<br /><input type="checkbox" name="hidden_dirs" id="hidden_dirs" <%= @hidden ? " checked=\"checked\"" : ""%>/> Show hidden folders<br /><br />
+<input class="button" type="button" value="Close" onclick="closeLightbox();" />
+<% if @dirs.size > 0  %>
+	<hr />
+	<% @dirs.each do | dir | %>
+		<a href="#" onclick="switchToDir('<%= CGI::escape(dir) %>');return false;"><%= File.basename(dir) %></a><br />
+	<% end %>
+	<hr />
+<% else %>
+	<p>No directories.</p>
+<% end %>

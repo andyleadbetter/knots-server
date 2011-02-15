@@ -1,0 +1,20 @@
+<div class="browselist_visible">
+	<% if !@item.value && !@item.tag && !@item.name  && !@item.virtual %>
+		<img src="/root/resource_file?type=image&file=no_shot0.png" width="16" height="16" hspace="4" /><a href="#" onclick="browseList(<%= @item.id %>, null, null, null, null);return false;"><%= @item.category %></a>
+		<div id="cat_<%= @item.id %>" class="browselist"></div>
+	<% elsif !@item.value && !@item.name && !@item.virtual  %>
+		<img src="/root/resource_file?type=image&file=no_shot0.png" width="16" height="16" hspace="4" /><a href="#" onclick="browseList(<%= params["category"] %>, <%= @item.id %>, null, null, null);return false;"><%= @item.tag %></a>
+		<div id="tag_<%= @item.id %>" class="browselist"></div>
+	<% elsif !@item.name && !@item.virtual %>
+		<img src="/root/resource_file?type=image&file=no_shot0.png" width="16" height="16" hspace="4" /><a href="#" onclick="browseList(<%= params["category"] %>, <%= params["tag"] %>, <%= @item.id %>, null, null);return false;"><%= @item.value %></a>
+		<div id="value_<%= @item.id %>" class="browselist"></div>
+	<% elsif !@item.name %>
+		<img src="/root/resource_file?type=image&file=no_shot0.png" width="16" height="16" hspace="4" /><a href="#" onclick="browseList(null, null, null, <%= @item.id %>, null);return false;"><%= @item.virtual %></a>
+		<div id="virt_<%= @item.id %>" class="browselist"></div>
+	<% else %>
+		<div class="browselist_video" id="item_<%= @item.id %>">
+			<%= html("list_item_info") %>
+		</div>
+	<% end %>
+	
+</div>

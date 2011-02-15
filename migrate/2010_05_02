@@ -1,0 +1,10 @@
+DELETE FROM settings WHERE key='image_ext';
+INSERT INTO settings (key,value,name) VALUES('image_ext', 'jpg,jpeg,png,gif','Image extensions');
+DELETE FROM categories WHERE category='Images';
+INSERT INTO categories (category) VALUES('Pictures');
+ALTER TABLE scanned ADD COLUMN image_category INTEGER;
+DELETE FROM transcoding_profiles WHERE name='Slideshow';
+INSERT INTO transcoding_profiles (name,audio_format,audio_bitrate,audio_rate,video_format,video_bitrate,mux,stream_extension,audio_channels,width,height,vlc_cmd_params) VALUES ("Slideshow","mp3","128","44100","xvid","2048","asf","asf","2","800","480","fake-duration=10");
+DELETE FROM settings WHERE key='random_category_images';
+INSERT INTO settings (key,value,name) VALUES('random_category_images', '0','Random category images');
+

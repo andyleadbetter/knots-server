@@ -1,0 +1,251 @@
+<h1>Personal video recorders</h1>
+<p>
+	After you have added a recorder, you can edit it under settings.
+</p>
+<table>
+<%
+	added = false
+	i = 1
+	while (vdr = db.settings.by_key("=\"vdr#{i}\"").first)
+		%>
+			<tr><td><strong>VDR <%= i %></strong></td><td><input type="button" class="button" value="Remove" onclick="removePVR('vdr<%= i %>')" /></td></tr>
+		<%
+		i += 1
+		added = true	
+	end
+	i = 1
+	while (vdr = db.settings.by_key("=\"mythtv#{i}\"").first)
+		%>
+			<tr><td><strong>MythTV <%= i %></strong></td><td><input type="button" class="button" value="Remove" onclick="removePVR('mythtv<%= i %>')" /></td></tr>
+		<%
+		i += 1
+		added = true
+	end 
+	i = 1
+	while (vdr = db.settings.by_key("=\"dreambox#{i}\"").first)
+		%>
+			<tr><td><strong>Dreambox <%= i %></strong></td><td><input type="button" class="button" value="Remove" onclick="removePVR('dreambox<%= i %>')" /></td></tr>
+		<%
+		i += 1
+		added = true
+	end
+	i = 1
+	while (vdr = db.settings.by_key("=\"dbox2_#{i}\"").first)
+		%>
+			<tr><td><strong>DBox2 <%= i %></strong></td><td><input type="button" class="button" value="Remove" onclick="removePVR('dbox2_<%= i %>')" /></td></tr>
+		<%
+		i += 1
+		added = true
+	end 
+%>
+</table>
+<div id="pvr0" style="display:none;border-bottom:1px solid #bbb;border-top:1px solid #bbb;">
+	<h3>New VDR</h3>
+	<p>VDR support requires streamdev-server to be installed.</p>
+	<table>
+		<tr>
+			<td>Server address:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr0_0" value="192.168.0.1" />
+			</td>
+		</tr>
+		<tr>
+			<td>SVDRP port:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr0_1" value="2001" />
+			</td>
+		</tr>
+		<tr>
+			<td>Streamdev port:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr0_2" value="3000" />
+			</td>
+		</tr>
+		<tr>
+			<td>Character encoding (iso-8859-1/utf-8):
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr0_3" value="iso-8859-1" />
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				<br />
+				<input type="button" class="button" value="Test" onclick="testPVR(0)" />
+				<input type="button" class="button" value="Save" onclick="savePVR(0)" id="save_pvr0" style="display:none;" />
+			</td>
+		</tr>
+	</table>
+	<div id="test_pvr0">
+	</div>
+</div>
+<div id="pvr1" style="display:none;border-bottom:1px solid #bbb;border-top:1px solid #bbb;">
+	<h3>New MythTV</h3>
+	<p>MythTV support requires ruby-mysql bindings to be installed.</p>
+	<table>
+		<tr>
+			<td>Server address:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr1_0" value="192.168.0.1" />
+			</td>
+		</tr>
+		<tr>
+			<td>Username:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr1_1" value="mythtv" />
+			</td>
+		</tr>
+		<tr>
+			<td>Password:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr1_2" value="" />
+			</td>
+		</tr>
+		<tr>
+			<td>Database name:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr1_3" value="mythconverg" />
+			</td>
+		</tr>
+		<tr>
+			<td>Character encoding:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr1_4" value="iso-8859-1" />
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				<br />
+				<input type="button" class="button" value="Test" onclick="testPVR(1)" />
+				<input type="button" class="button" value="Save" onclick="savePVR(1)" id="save_pvr1" style="display:none;" />
+			</td>
+		</tr>
+	</table>
+	<div id="test_pvr1">
+	</div>
+</div>
+<div id="pvr2" style="display:none;border-bottom:1px solid #bbb;border-top:1px solid #bbb;">
+	<h3>New Dreambox</h3>
+	<p>Dreambox enigma1 requires the Zapstream plugin to be installed on device. On enigma2 stream port is 8001 by default.</p>
+	<table>
+		<tr>
+			<td>Server address:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr2_0" value="192.168.0.1" />
+			</td>
+		</tr>
+		<tr>
+			<td>Server control port:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr2_1" value="80" />
+			</td>
+		</tr>
+		<tr>
+			<td>Stream port:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr2_2" value="31344" />
+			</td>
+		</tr>
+		<tr>
+			<td>Username:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr2_3" value="root" />
+			</td>
+		</tr>
+		<tr>
+			<td>Password:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr2_4" value="dreambox" />
+			</td>
+		</tr>
+		<tr>
+			<td>Enigma type:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr2_5" value="1" />
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				<br />
+				<input type="button" class="button" value="Test" onclick="testPVR(2)" />
+				<input type="button" class="button" value="Save" onclick="savePVR(2)" id="save_pvr2" style="display:none;" />
+			</td>
+		</tr>
+	</table>
+	<div id="test_pvr2">
+	</div>
+</div>
+<div id="pvr3" style="display:none;border-bottom:1px solid #bbb;border-top:1px solid #bbb;">
+	<h3>New DBox2</h3>
+	<p>DBox2 needs to have enigma1 firmware installed.</p>
+	<table>
+		<tr>
+			<td>Server address:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr3_0" value="192.168.0.1" />
+			</td>
+		</tr>
+		<tr>
+			<td>Server control port:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr3_1" value="80" />
+			</td>
+		</tr>
+		<tr>
+			<td>Stream port:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr3_2" value="31339" />
+			</td>
+		</tr>
+		<tr>
+			<td>Username:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr3_3" value="root" />
+			</td>
+		</tr>
+		<tr>
+			<td>Password:
+			</td>
+			<td>
+				<input type="text" class="text" id="pvr3_4" value="dbox" />
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				<br />
+				<input type="button" class="button" value="Test" onclick="testPVR(3)" />
+				<input type="button" class="button" value="Save" onclick="savePVR(3)" id="save_pvr3" style="display:none;" />
+			</td>
+		</tr>
+	</table>
+	<div id="test_pvr3">
+	</div>
+</div>
+<%
+	if !added
+		%><p>No recorders added.</p><%
+	end
+%>
+<input type="button" class="button" value="New VDR" onclick="showPVR(0);" />
+<input type="button" class="button" value="New MythTV" onclick="showPVR(1);" />
+<input type="button" class="button" value="New Dreambox" onclick="showPVR(2);" />
+<input type="button" class="button" value="New DBox2" onclick="showPVR(3);" />
+<input type="button" class="button" value="Close" onclick="closeLightbox()" />

@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+begin
+	if RUBY_VERSION >= "1.9.2"
+		@knots_dir = File.expand_path(File.dirname(File.dirname(__FILE__)))
+		$LOAD_PATH.push(@knots_dir) if !$LOAD_PATH.include?(@knots_dir)
+	end
+	require 'lib/db'
+	require 'lib/common'
+rescue	Exception => ex
+	puts "This script must be run from the knots root"
+	exit
+end
+require 'fileutils'
+
+class Migrate
+	def initialize
+		@database = Common.load_database
+		migrates = Dir.entries("migrate").delete_if{|x| x == "." || x == ".."}.sort
+		last_migrate = @database.settings.by_key("migration").first
+		last_migrate = last_migrate ? last_migrate.value : "2009_03_01"
+		migrates.each do | file |
+			if file > last_migrate
+				migrate(file)
+			end
+		end
+		migrated = @database.settings.by_key("migration").first || @database.settings.new
+		migrated.key = "migration"
+		migrated.value = Time.now.strftime("%Y_%m_%d")
+		migrated.save
+	end
+	
+	def migrate(file)
+		puts "Migrating file #{file}"
+		data = Common.load_file(File.join("migrate", file))
+		if data
+			data.split("\n").each do | line |
+				if @database.execute(line)
+					puts "#{line} executed successfully"
+				else
+					puts "#{line} failed"
+				end
+			end
+		end
+	end
+end
+Migrate.new
+

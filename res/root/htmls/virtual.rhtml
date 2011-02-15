@@ -1,0 +1,52 @@
+<fieldset>
+	<legend>Virtual categories</legend>
+	<p>
+		If you know SQL, you can create your own virtual categories.
+	</p>
+		<% if db.virtual_categories %>
+			<table>
+			<% db.virtual_categories.all(:order => "virtual").each do | category | %>
+				
+				<tr>
+					<td valign="top"><a href="#" onclick="toggleVisibility('virtual_<%= category.id %>');return false;"><%= category.virtual %></a></td>
+					<td valign="top">
+						<form method="post" action="/root/save_virtual_category" id="virtual_category_form_<%= category.id %>">
+							<div id="virtual_<%= category.id %>" style="display:<%= !params["open"] || params["open"].to_i != category.id ? "none" : "block" %>;">
+								Name:<br />
+								<input type="text" class="text" name="name" value="<%= category.virtual %>" /><br />
+								Query: <br />
+								<textarea name="query" rows="5" cols="90"><%= category.search %></textarea>
+								<br />
+								<input class="button" type="button" value="Save" onclick="saveVirtualCategory(<%= category.id %>)" />
+								<input class="button" type="button" value="Delete" onclick="deleteVirtualCategory(<%= category.id %>)" />
+								<input type="button" value="Set image" class="button" onclick="" id="upload_button_<%= category.id %>" />
+								<input class="button" type="button" value="Delete image" onclick="deleteVirtualCategoryImage(<%= category.id %>)" />
+								<script type="text/javascript">
+									new AjaxUpload('upload_button_<%= category.id %>', {action: '/root/set_virtual_image', data: {id: <%= category.id %>}, onComplete: function(file, response) {reloadVirtualCategoryImage(<%= category.id %>)}});
+								</script>
+								<p>
+									<div id="virtual_image_<%= category.id %>">
+										<% if category.image_id %>
+											<%= media_screenshot(nil, nil, nil, 40, false, true, nil, category.image_id) %><br />
+										<% else %>
+											No image set.
+										<% end %>
+									</div>
+								</p>
+							</div>
+						</form>
+					</td>
+				</tr>
+				
+			<% end %>
+		</table>
+		<br />
+		<input type="button" class="button" value="New category" onclick="newVirtualCategory()" />
+		<input type="button" class="button" value="Reset" onclick="resetVirtualCategories()" />
+	<% else %>
+		<p>
+			Please remove your old database and restart server.
+		</p>
+	<% end %>
+</fieldset>
+

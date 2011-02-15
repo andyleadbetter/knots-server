@@ -1,0 +1,35 @@
+#!/usr/bin/env ruby
+begin
+	if RUBY_VERSION >= "1.9.2"
+		@knots_dir = File.expand_path(File.dirname(File.dirname(__FILE__)))
+		$LOAD_PATH.push(@knots_dir) if !$LOAD_PATH.include?(@knots_dir)
+	end
+	require 'lib/db'
+	require 'lib/common'
+rescue	Exception => ex
+	puts "This script must be run from the knots root"
+	exit
+end
+require 'fileutils'
+
+class Debug
+	def initialize
+		enable = ARGV[0] == nil || ARGV[0] == "true"
+		database = Common.load_database
+		devel = database.settings.by_key("devel").first || database.settings.new
+		devel.key = "devel"
+		devel.value = enable ? "1" : "0"
+		devel.save
+		log_level = database.settings.by_key("log_level").first || database.settings.new
+		log_level.key = "log_level"
+		log_level.value = enable ? "2" : "0"
+		log_level.save
+		if enable
+			puts("Done. Run './scripts/enable_debug false' to disable debug.")
+		else
+			puts("Done. Run './scripts/enable_debug' to enable debug.")
+		end
+	end
+end
+Debug.new
+

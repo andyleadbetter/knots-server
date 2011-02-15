@@ -1,0 +1,13 @@
+<ul class="vdrlist">
+	<% @programs.each do | program | %>
+		<a href="#" onclick="toggleVisibility('<%= params["vdr"] %>_<%= params["channel"] %>_<%= params["date"] %>_<%= CGI::escape(program[3]) %>_<%= program[0].strftime("%H:%M") %>');return false;"><%= program[0].strftime("%H:%M") %> <%= program[2] %></a><br />
+		<div style="display:none;" class="vdrprogram" id="<%= params["vdr"] %>_<%= params["channel"] %>_<%= params["date"] %>_<%= CGI::escape(program[3]) %>_<%= program[0].strftime("%H:%M") %>">
+			Starts: <%= program[0].strftime("%H:%M") %><br />
+			Ends: <%= program[1].strftime("%H:%M") %>
+			<p>
+				<%= program[3].gsub("\n", "<br />") %>
+			</p>
+			<input type="button" class="button" onclick="schedule(<%= params["vdr"] %>, '<%= CGI::escape(params["channel"]) %>', '<%= params["date"] %>', '<%= program[0].strftime("%H:%M") + "-" + program[1].strftime("%H:%M") %>', '<%= CGI::escape(program[2]) %>');return false;" value="Schedule" />
+		</div>
+	<% end %>
+</ul>

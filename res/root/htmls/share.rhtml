@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" >
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Knots</title>
+	<script type="text/javascript">
+		poller = null;
+		player_id = null;
+	</script>
+	<%= javascript("prototype.js") %>
+	<%= javascript("effects.js") %>
+	<%= javascript("dragdrop.js") %>
+	<%= javascript("flowplayer.js") %>
+	<%= stylesheet("root.css") %>
+	<%= javascript("root.js") %>
+</head>
+
+<body onunload="stopPlayback(player_id, poller, null)">
+	<div id="light_player" class="white_content"></div><div id="fade_player" class="black_overlay"></div><div id="banner" class="banner"></div>
+	<div style="padding-left:10px;" id="shareplayer">
+		<% if @stream %>
+			<h1><%= @stream.mname || @stream.pname %></h1>
+			<p>
+				<% if !@stream.transcoding_profile %>
+					Please select the profile: <select name="transcoding_profile" id="transcoding_profile">
+					<% db.transcoding_profiles.all.each do | profile | %>
+						<% if profile.mux %>
+							<option value="<%= profile.id %>"><%= profile.name %></option>
+						<% end %>
+					<% end %>
+					<input type="button" class="button" value="Play" onclick="playShare('<%= @stream.key %>')" />
+				<% else %>
+					<input type="hidden" id="transcoding_profile" name="transcoding_profile" value="<%= @stream.transcoding_profile %>">
+					<input type="button" class="button" value="Play" onclick="playShare('<%= @stream.key %>')" />
+				<% end %>
+			</select>
+			</p>
+		<% else %>
+			<p>
+				Error! No such share.
+			</p>
+		<% end %>	
+	</div>
+</body>
+</html>
+

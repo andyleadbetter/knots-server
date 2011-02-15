@@ -1,0 +1,34 @@
+<% if @player %>
+	<a href="#" onclick="stopPlayback('<%= @player.player_id %>', poller, media_id);return false;"><img width="32" height="32" src="/root/resource_file?type=image&file=player_stop.png" border="0" style="float:left;margin-right:5px;" /></a>
+	<% if @player && @player.position %>
+		<div class="itemcombo">
+			<% if @player.playlist.size > 1 %>
+				<% if @player.playlistindex > 1 %>
+					<a href="#" onclick="previousPlaylistItem('<%= @player.player_id %>');return false;"><img width="32" height="32" src="/root/resource_file?type=image&file=player_rew.png" border="0"  style="float:left;margin-right:5px;" /></a>	
+				<% end %>
+				<% if @player.playlistindex < @player.playlist.size %>
+					<a href="#" onclick="nextPlaylistItem('<%= @player.player_id %>');return false;"><img width="32" height="32" src="/root/resource_file?type=image&file=player_fwd.png" border="0" style="float:left;margin-right:5px;" /></a>	
+				<% end %>
+			<% end %>
+			<div style="float:left;">
+				<select name="playlist_items" id="playlist_items" onchange="playPlaylistItem('<%= @player.player_id %>')">
+					<% @player.playlist.each_with_index do | item, i | %>
+						<option value="<%= i + 1 %>"<%= (i + 1) == @player.playlistindex ? " selected=\"selected\"" : "" %>><%= item.name.truncate(20) %></option>
+					<% end %>
+				</select>
+				<% if @player.currently_playing.mediatype == 1 %>
+					<input type="button" class="button" value="Lyrics" onclick="fetchLyrics(<%= @player.currently_playing.id %>)" />
+				<% end %>
+				<input type="button" class="button" value="External player" onclick="createPlaylist(stream);return false;" />
+			</div>
+		</div>
+		<script type="text/javascript">
+			currently_playing = <%= @player.currently_playing.id %>;
+		</script>
+	<% end %>
+<% else %>
+	<script>
+		currently_playing = null;
+	</script>
+	<a href="#" onclick="closePlayerLightbox();return false;"><img width="32" height="32" src="/root/resource_file?type=image&file=player_stop.png" border="0" style="float:left;margin-right:5px;" /></a>
+<% end %>

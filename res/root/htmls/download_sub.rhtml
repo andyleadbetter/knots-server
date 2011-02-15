@@ -1,0 +1,10 @@
+<h2>Download result</h2>
+<p>
+	<% if !@error %>
+		Subs downloaded successfully.
+	<% else %>
+		<%= @error %>
+	<% end %>
+</p>
+<input type="button" class="button" value="Close" onclick="closeLightbox();" />
+

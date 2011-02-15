@@ -1,0 +1,20 @@
+<legend class="small">Tags:</legend>
+Tags: <select name="tags" id="tags" onchange="selectTag()">
+	<option value="-1">-</option>
+	<% server.database.tags.all({:order => "tag"}).each do | tag | %>
+		<option value="<%= tag.id %>"<%= params["selected"] && params["selected"].to_i == tag.id ? " selected=\"selected\"" : "" %>><%= tag.tag %></option>
+	<% end %>
+</select>
+Values: <select name="tag_values" id="tag_values" onchange="selectTagValue()">
+	<option value="-1">-</option>
+	<% server.database.tag_values.by_tag_id(params["selected"], {:order => "value"}).each do | tag_value | %>
+		<option value="<%= tag_value.id %>"<%= params["selected_value"] && params["selected_value"].to_i == tag_value.id ? " selected=\"selected\"" : "" %>><%= tag_value.value %></option>
+	<% end %>
+</select><br /><br />
+<input type="button" class="button" value="Add tag" onclick="addTag()" />
+<input type="button" class="button" value="Rename tag" onclick="renameTag()" />
+<input type="button" class="button" value="Remove tag" onclick="removeTag()" />
+<input type="button" class="button" value="Add value" onclick="addTagValue()" />
+<input type="button" class="button" value="Rename value" onclick="renameTagValue()" />
+<input type="button" class="button" value="Remove value" onclick="removeTagValue()" />
+

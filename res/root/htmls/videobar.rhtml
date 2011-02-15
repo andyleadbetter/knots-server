@@ -1,0 +1,34 @@
+<fieldset class="small" id="search_fieldset">
+	<%= html("search") %>
+</fieldset>
+<form method="post" action="/root/apply" id="search_form">
+	<fieldset class="small" id="categories_fieldset">
+		<%= html("categories") %>
+	</fieldset>
+	<fieldset class="small" id="tags_fieldset">
+		<%= html("tags") %>
+	</fieldset>
+	<fieldset class="small" id="actions_fieldset">
+		<%= html("actions") %>	
+	</fieldset>
+	<fieldset class="small" id="covers_fieldset">
+		<%= html("covers") %>	
+	</fieldset>
+	<fieldset class="small" id="tmdb_fieldset">
+		<%= html("tmdb") %>	
+	</fieldset>
+	<fieldset class="small" id="items_fieldset">
+		<%= html("newitem") %>	
+	</fieldset>
+	<fieldset class="small" id="images_fieldset">
+		<%= html("images") %>	
+	</fieldset>
+	<fieldset class="small" id="playlists_fieldset">
+		<%= html("playlists") %>	
+	</fieldset>
+	<% if server.settings.curl && server.settings.upload_path && server.settings.tmpdir && server.settings.ffmpeg %>
+		<!--fieldset class="small" id="youtube_fieldlist">
+			<%= html("youtube") %>
+		</fieldset-->
+	<% end %>
+

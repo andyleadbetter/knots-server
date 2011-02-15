@@ -1,0 +1,12 @@
+<% if @url %>
+	<p>
+		Share url is: <input type="text" id="url" size="<%= @url.size %>" value="<%= @url %>" />
+	</p>
+<% else %>
+	<p>Sharing failed. Please check your remote discovery settings.</p>
+	
+<% end %>
+<input type="button" class="button" value="Close" onclick="closeLightbox();" />
+<script type="text/javascript">
+	document.getElementById('url').focus();
+</script>

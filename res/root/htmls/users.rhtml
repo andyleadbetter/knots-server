@@ -1,0 +1,74 @@
+<% if !params["show"] %>
+	<form method="post" action="/root/users" id="users" onsubmit="return false;">
+		<input type="hidden" name="save" value="true" />
+		<fieldset>
+			<legend>Users</legend>
+			<p style="max-width:600px;">
+				Authentication is enabled when SSL is set to 1. To create an admin user, enable SSL and restart the server. Add a new user. Change the role of the user to admin and set a password. Once you save the user, press reload to login as that user. You can add guest users and give them rights to certain categories if you want to share your media with others. <strong>Do not share your media with people you don't trust!</strong>
+			</p>
+			<table>
+				<tr>
+					<td valign="top">
+						<select class="list" name="userlist" id="userlist" multiple="multiple" size="10" onchange="selectUser();">
+							<% server.db.users.sql("SELECT * FROM users WHERE temporary IS NULL").each do | user | %>
+								<option value="<%= user.id %>"><%= user.user %></option>	
+							<% end %>
+						</select><br />
+						<input type="button" class="button" value="Add new user" onclick="addUser()" />
+						<input type="button" class="button" value="Delete user" onclick="deleteUser()" />
+					</td>
+					<td valign="top">
+						<div id="userinfo"></div>
+					</td>
+				</tr>
+			</table>
+		</fieldset>
+	</form>
+<% else %>
+	<strong>Type:</strong> <select name="role" id="role"><option value="0"<%= @user.role == 0 ? " selected=\"selected\"" : "" %>>admin</option><option value="1"<%= @user.role == 1 ? " selected=\"selected\"" : "" %>>guest</option></select><br />
+	<strong>Password: <input type="password" name="passwd" id="passwd" size="10" value="<%= @user.pass %>" /><input type="button" class="button" value="Change" onclick="changePassword()" /></strong>
+	<% if @user.role == 1 %>
+		<hr />
+		<table>
+			<tr>
+				<td valign="top">
+					<p><strong>Categories</strong></p>
+					<% if @categories.size > 0 %>
+						<select class="list" name="user_categories" id="user_categories" size="10">
+							<% @categories.each do | category | %>
+								<option value="<%= category.id %>"><%= category.category %></option>
+							<% end %>
+						</select>
+					<% else %>
+						<p>
+							No rights.
+						</p>
+					<% end %>
+					
+				</td>
+				<td>
+					<% if @all_categories.size > 0 %>
+						<input type="button" class="button" value="&lt;&lt;" onclick="addCategoryRights()" /><br />
+					<% end %>
+					<% if @categories.size > 0 %>
+						<input type="button" class="button" value="&gt;&gt;" onclick="removeCategoryRights()" />
+					<% end %>
+				</td>
+				<td>
+					<p><strong>Available categories</strong></p>
+					<% if @all_categories.size > 0 %>
+						<select class="list" name="all_categories" id="all_categories" size="10">
+							<% @all_categories.each do | category | %>
+								<option value="<%= category.id %>"><%= category.category %></option>
+							<% end %>
+						</select>
+					<% else %>
+						<p>
+							No categories.
+						</p>
+					<% end %>
+				</td>
+			</tr>
+		</table>
+	<% end %>
+<% end %>

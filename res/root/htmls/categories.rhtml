@@ -1,0 +1,10 @@
+<legend class="small">Categories:</legend>
+<select name="categories" id="categories" onchange="selectCategory()">
+	<option value="-1">-</option>
+	<% server.database.categories.all({:order => "category"}).each do | category | %>
+		<option value="<%= category.id %>"<%= params["category"] && params["category"].to_i == category.id ? " selected=\"selected\"" : "" %>><%= category.category %></option>
+	<% end %>
+</select><br /><br />
+<input type="button" class="button" value="Add" onclick="addCategory()" />
+<input type="button" class="button" value="Rename" onclick="renameCategory()" />
+<input type="button" class="button" value="Remove" onclick="removeCategory()" />

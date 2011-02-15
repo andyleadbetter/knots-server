@@ -1,0 +1,4 @@
+#!/bin/sh
+cp -r osx/knots.app $HOME
+mkdir -p $HOME/knots.app/Contents/Resources/knots
+cp -r db lib plugins knots.rb res cert migrate scripts $HOME/knots.app/Contents/Resources/knots

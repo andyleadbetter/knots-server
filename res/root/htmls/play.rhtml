@@ -1,0 +1,76 @@
+<% if @player && @player.started? %>
+	<script type="text/javascript">
+		poller = null;
+		stream = "http://<%= @player.player_id %>:<%= @player.player_pass %>@" + getAddress() + ":<%= @player.port %>/<%= @player.stream %>";
+		<% if @player.mux %>
+			<% if (@player.profile.embed && @player.profile.embed.downcase == "flash") || @player.mux == "ffmpeg{mux=flv}" %>
+			document.getElementById('player_container').innerHTML = "<a href=\"" + stream + "\" style=\"display:block;width:<%= @player.video_width %>px;height:<%= @player.video_height %>px;\" id=\"player\">"
+				$f("player", '/root/resource_file?type=image&file=flowplayer-3.0.7.swf"',  {
+				    clip:  { 
+					autoPlay: true, 
+					bufferLength: <%= @player.profile.buffer_seconds || 10 %>, 
+				    },
+				    plugins:  { 
+					controls: {
+					    opacity: 0.1,
+					    background: '#000',
+					    backgroundGradient: 'none',
+					    all: false, 
+					    fullscreen: true 
+					} 
+				    } 
+				});
+			<% else %>
+				<% if !@player.profile.embed || @player.profile.embed == "wmp" %>
+					document.getElementById('player_container').innerHTML = "<object id=\"MediaPlayer\" width=\"<%= @player.video_width %>\" height=\"<%= @player.video_height %>\" classid=\"CLSID:22D6f312-B0F6-11D0-94AB-0080C74C7E95\" standby=\"Loading Windows Media Player components...\" type=\"application/x-oleobject\" codebase=\"http://activex.microsoft.com/activex/controls/mplayer/en/nsmp2inf.cab#Version=6,4,7,1112\"><param name=\"filename\" value=\"" + stream + "\"><param name=\"Showcontrols\" value=\"False\"><param name=\"autoStart\" value=\"True\"><embed type=\"application/x-mplayer2\" src=\"" + stream + "\" name=\"MediaPlayer\" width=\"<%= @player.video_width %>\" height=\"<%= @player.video_height %>\"></embed></object>";
+				<% elsif @player.profile.embed.downcase == "theora" %>
+					document.getElementById('player_container').innerHTML = "<video width=\"<%= @player.video_width %>\" height=\"<%= @player.video_height %>\" autoplay src=\"" + stream + "\"></video>";
+				<% elsif @player.profile.embed.downcase == "vlc" %>
+					document.getElementById('player_container').innerHTML = "<OBJECT classid=\"clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921\" codebase=\"http://downloads.videolan.org/pub/videolan/vlc/latest/win32/axvlc.cab\" width=\"<%= @player.video_width %>\" height=\"<%= @player.video_height %>\" id=\"vlc\" events=\"True\"><param name=\"Src\" value=\"" + stream + "\" /><param name=\"ShowDisplay\" value=\"True\" /><param name=\"AutoLoop\" value=\"False\" /><param name=\"AutoPlay\" value=\"True\" /><EMBED pluginspage=\"http://www.videolan.org\" type=\"application/x-vlc-plugin\" progid=\"VideoLAN.VLCPlugin.2\" width=\"<%= @player.video_width %>\" height=\"<%= @player.video_height %>\" autoplay=\"yes\" loop=\"no\" target=\"" + stream + "\" name=\"vlc\"></EMBED></OBJECT>";
+				<% end %>
+			<% end %>
+		<% else %>
+			document.getElementById('player_container').innerHTML = "<img src=\"/root/resource_file?type=image&file=no_shot0.jpg\" width=\"<%= @player.video_width %>\" height=\"<%= @player.video_height %>\" />"
+		<% end %>
+		media_id = <%= params["id"] || "null" %>;
+		player_id = '<%= @player.player_id %>';
+		<% if @player.seekable? %>
+			poller = poll('progress', 'root', 'progress', 5, {id: '<%= @player.player_id %>'});
+		<% end %>
+		window.onunload = function(){
+			stopPlayback('<%= @player.player_id %>', poller, media_id);
+		}
+	</script>
+	<table align="center">
+		<tr>
+			<td valign="top">
+				<table cellpadding="0" cellspacing="0" align="center" class="player">
+					<tr>
+						<td id="container"><div style="border:10px solid #000;width:<%= @player.video_width %>px" id="player_container"></a></div></td>
+					</tr>
+					<tr>	
+						<td id="seekbg" style="display:<%= @player.seekable? ? "block" : "none"%>"><div onclick="seek(event, '<%= @player.player_id %>');return false;" id="progress" style="border:10px solid #000;width:<%= @player.video_width %>px;height:40px;border-top:0px;"></div></td>
+					</tr>
+					<tr>
+						<td colspan="2" valign="top"><div id="playing" style="background:#000;border:10px solid #000;background:#000;margin-bottom:5px;color:#fff;overflow:hidden;width:<%= @player.video_width %>px;height:36px;"><%= html("playing") %></div></td>
+					</tr>
+				</table>
+			</td>
+			<td>
+				<div id="lyrics" class="lyrics" style="width:<%= @player.video_width / 2 %>px;height:<%= @player.video_height + 95 %>px;">
+					<% @item = @player.currently_playing %>
+					<%= html("taglist") %>
+				</div>
+			</td>
+		</tr>
+	</table>
+	<% if !params["key"] %>
+		<input type="button" class="button" value="Hide window" onclick="showPlayer(false);" />
+	<% end %>
+<% else %>
+	<script language="text/javascript">
+		closePlayerLightbox();
+		alert_banner("Stream failed to start. This usually means the item doesn't exist, VLC can't find it or VLC crashed.");
+		showPlayerButton(false);
+	</script>
+<% end %>

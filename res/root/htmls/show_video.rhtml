@@ -1,0 +1,123 @@
+<form method="post" action="/root/save_item" onsubmit="return false;" id="item_form">
+	<input type="hidden" name="id" id="id" value="<%= @item.id %>" />
+	<h1><%= @item.category_name %> / <%= @item.name %></h1>
+	<div class="edit_item">
+		<h2><%= ["Plot", "Info"][@item.mediatype] %></h2>
+		<p>
+			<% if !params["edit"] || !user.admin %>
+				<%= @item.info ? @item.info.gsub("\n", "<br />") : ["No plot.", "No info"][@item.mediatype] %>
+			<% else %>
+				<textarea cols="40" rows="10" name="info"><%= @item.info %></textarea>
+			<% end %>
+		</p>
+	</div>
+	<div class="edit_item">
+		<h2>Information</h2>
+		<p>
+			<% if !params["edit"] || !user.admin %>
+				<table cellpadding="0">
+					<tr>
+						<td class="key">Added:</td><td class="val"><%= @item.added.strftime("%Y-%m-%d") %></td>
+					</tr>
+					<tr>
+					<td class="key"><%= ["Views", "Play count", "Views", "Views"][@item.mediatype] %></td><td class="val"><%= @item.views %></td>
+					</tr>
+					<tr>
+						<td class="key">Rating:</td><td class="val"><div id="stars_<%= @item.id %>" class="stars"><%= html("rating") %></div></td>
+					</tr>
+					<% if @item.mediatype != 1 %>
+						<tr>
+							<td class="key">Resolution:</td><td class="val"><%= @item.width && @item.height ? "#{@item.width}x#{@item.height}" : "Unknown" %></td>
+						</tr>
+						<tr>
+							<td class="key">Aspect:</td><td class="val"><%= @item.aspect || "Unknown" %></td>
+						</tr>
+					<% end %>
+					<% if @item.mediatype != 2 %>
+					<tr>
+						<td class="key">Duration:</td><td class="val"><%= Common.position_for_ffmpeg(@item.duration) %></td>
+					</tr>
+					<% end %>
+				 </table>
+			<% else %>
+				<table>
+					<tr>
+						<td><strong>Name:</strong></td><td><input type="text" class="text" name="name" id="name" value="<%= @item.name %>" /></td>
+					</tr>
+					<tr>
+						<td><strong>Rating:</strong></td><td><div id="stars_<%= @item.id %>" class="stars"><%= html("rating") %></div></td>
+					</tr>
+					<% if @item.mediatype != 1 %>
+						<tr>
+							<td><strong>Resolution:</strong></td><td><input type="text" name="width" size="4" value="<%= @item.width %>" /> x <input type="text" size="4" name="height" value="<%= @item.height %>" /></td>
+						</tr>
+						<tr>
+							<td><strong>Aspect:</strong></td><td><input type="text" class="text" name="aspect" value="<%= @item.aspect %>" /></td>
+						</tr>
+					<% end %>
+					<% if @item.mediatype != 2 %>
+						<tr>
+							<td><strong>Duration:</strong></td><td><input type="text" class="text" name="duration" value="<%= Common.position_for_ffmpeg(@item.duration) %>" /></td>
+						</tr
+					<% end %>
+					<tr>
+						<td><strong>Category:</strong></td>
+						<td>
+							<select name="category">
+							<% server.database.categories.all(:order => "category").each do | category | %>
+								<option value="<%= category.id %>"<%= category.id != @item.category ? "" : " selected=\"selected\"" %>><%= category.category %></option>
+							<% end %>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td><strong>Path:</strong></td><td><input type="text" class="text" name="path" value="<%= @item.path %>" /></td>
+					</tr>
+					<tr>
+						<td><strong>Params for VLC:</strong></td><td><input type="text" class="text" name="params" value="<%= @item.params %>" /></td>
+					</tr>
+					<% if @item.mediatype == Knots::ITEM_TYPE_AUDIO %>
+					<tr>
+						<td class="key" valign="top">Lyrics:</td>
+						<td class="val">
+							<textarea name="lyrics" cols="45" rows="10"><%= @item.lyrics %></textarea>
+						</td>
+					</tr>
+					<% end %>
+				</table>
+			<% end %>
+		</p>
+	</div>
+	<div class="edit_item">
+		<div id="screenshot_<%= @item.id %>" class="edit_screenshot">
+			<%= media_screenshot(@item.id, @item.mediatype, nil, nil, false) %>
+		</div>
+		<% if params["edit"] && user.admin && server.settings.screenshot && server.settings.screenshot.to_i == 1 %>
+			<div id="screenshot_controls_<%= @item.id %>" class="edit_info">
+				<input type="button" value="<%= ["Grab new screenshot", "Refetch cover", "Grab new screenshot"][@item.mediatype] %>" class="button" onmousedown="timeClick();" onclick="grabScreenshot(<%= @item.id %>)" />
+				<input type="button" id="upload_button" class="button" value="Custom image" />
+				<script type="text/javascript">
+					new AjaxUpload('upload_button', {action: '/root/custom_screenshot', data: {id : '<%= @item.id %>'}, onComplete: function(file, response) {updateScreenshot(<%= @item.id %>);}});
+				</script>
+			</div>
+		<% end %>
+	</div>
+	<br style="clear:both" />
+	<div class="edit_item" id="tags_edit">
+		<%= html("taglist") %>
+	</div>
+	<br style="clear:both;" /><br />
+	<% if !params["edit"] || !user.admin %>
+		<input type="button" value="Play" class="button" onclick="play(<%= @item.id %>)" />
+		<input type="button" value="Edit" class="button" onclick="lightbox('/root/show_video?id=<%= @item.id %>&edit=true')" />
+	<% else %>
+		<input type="button" value="Cancel" class="button" onclick="lightbox('/root/show_video?id=<%= @item.id %>')" />
+		<input type="button" value="Save" class="button" onclick="saveInfo(<%= @item.id %>)" />
+		<% if @item.mediatype == 0 %>
+			<input type="button" value="Fetch info from themoviedb.org" class="button" onclick="themoviedb(<%= @item.id %>)" />
+			<input type="button" value="Fetch subtitles from opensubtitles.org" id="opensubbutton" class="button" onclick="opensubtitles(<%= @item.id %>)" />
+		<% end %>
+		<input type="button" value="Deactivate" class="button" onclick="deactivateItem(<%= @item.id %>)" />
+	<% end %>
+	<input type="button" value="Close" class="button" onclick="closeLightbox();reloadItem(<%= @item.id %>);" />
+</form>

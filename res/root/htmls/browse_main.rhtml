@@ -1,0 +1,68 @@
+<% if collection.mediacount > 0 %>
+	<% if !params["view"] || params["view"].to_i == 1 %>
+		<% collection.categories(user).each do | category | %>
+			<% @item = category %>
+			<%= html("category") %>
+		<% end %>
+		<% if user.admin %>
+			<div class="browse">
+			<div class="video_title">
+					<a href="#" class="video" onclick="byPath('<%= CGI::escape("/") %>', 1);return false;">Browse by path</a>
+			</div>
+			<div class="screenshot">
+				<a href="#" class="video" onclick="byPath('<%= CGI::escape("/") %>', 1);return false;"><img src="/root/resource_file?type=image&file=no_shot1.png" border="0" /></a>
+			</div>
+		</div>
+			<div class="browse">
+			<div class="video_title">
+					<a href="#" class="video" onclick="showPlaylist();return false;">Playlist</a>
+			</div>
+			<div class="screenshot">
+				<a href="#" class="video" onclick="showPlaylist();return false;"><img src="/root/resource_file?type=image&file=playlist.png" border="0" /></a>
+			</div>
+		<% end %>
+	<% else %>
+		<%
+			itemlist = Array.new
+		itemlist = collection.categories(user) if !params["virtual"] && !params["category"] && !params["tag"] && !params["value"]
+			itemlist, @pages = collection.browse_category(params["category"], params["tag"], params["value"], params["page"] || "1", params["order"]) if params["category"] && (!params["virtual"] || params["virtual"] == "")
+			if params["category"] && !params["tag"] && itemlist.size != 0
+				untagged = {"id" => -1, "tag" => "untagged"}
+				item = KnotsDBRow.new(nil, nil, untagged)
+				itemlist.push(item)
+			end
+			itemlist = db.media.sql(db.virtual_categories.by_id(params["virtual"]).first.search) if params["virtual"] && params["virtual"] != ""
+			if itemlist.size > 0
+				if @pages && @pages > 1
+				%>
+					<div class="browselist_video">
+						Page:
+						<select name="pager" id="pager" onchange="browseList(<%= params["category"] || null %>,<%= params["tag"] || "null" %>,<%= params["value"] || "null" %>,<%= params["virtual"] || "null" %>, document.getElementById('pager').value);">
+							<% @pages.times do | i | %>
+								<option value="<%= i + 1 %>"<%= params["page"] && params["page"].to_i == (i + 1) ? " selected=\"selected\"" : "" %>><%= i + 1 %></option>
+							<% end %>
+						</select>
+					</div>
+						<%
+					
+				end
+				itemlist.each do | item |
+					@item = item %>
+					<%= html("list_item") %>
+				<% end %>
+			<% if user.admin && !params["virtual"] && !params["category"] && !params["tag"] && !params["value"] %>
+				<div class="browselist_visible">
+					<img src="/root/resource_file?type=image&file=no_shot0.png" width="16" height="16" hspace="4" /><a href="#" onclick="showPlaylist();return false;">Playlist</a>
+				</div>
+			<% end %>
+			<% else %>
+				<script type="text/javascript">
+					document.getElementById('<%= params["div"] %>').style.display = 'none';
+				</script>
+		<% end %>
+	<% end %>
+<% else %>
+	<p>
+		No media. Please add your media under <strong>Collection</strong> and double click on <strong>Browse</strong> to refresh this page.
+	</p>
+<% end %>

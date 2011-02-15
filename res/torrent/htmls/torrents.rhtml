@@ -1,0 +1,25 @@
+<% if @torrents && @torrents.size > 0 %>
+	<%
+		show_add = false
+		index = 0
+	%>
+	<h3>Running torrents</h3>
+	<% @torrents.each_pair do | name, torrent | %>
+		<a href="#" onclick="toggleVisibility('torrent_<%= index %>');return false"><%= name %></a> <%= torrent.percent_completed.to_i %> % <% if torrent.percent_completed < 100 %><input type="button" value="Remove" onclick="remove_torrent('<%= name %>')" /><% end %>
+		<div id="torrent_<%= index %>" style="display:none;">
+			<strong>Complete:</strong> <%= torrent.complete? ? "Yes" : "No" %><br />
+			<strong>IP:</strong> <%= torrent.ip %><br />
+			<strong>Port:</strong> <%= torrent.port %><br />
+			<strong>Tracker:</strong> <%= torrent.tracker %><br />
+			<strong>Peers:</strong> <%= torrent.num_possible_peers %><br />
+		</div>
+		<% show_add = true if torrent.percent_completed.to_i == 100 %>
+		<% index += 1 %>
+	<% end %>
+	<br /><input type="button" value="Refresh" onclick="refresh_torrents()" />
+	<% if show_add %>
+		<input type="button" value="Remove completed from the list" onclick="remove_complete()" />
+	<% end %>
+<% else %>
+	No running torrents.
+<% end %>

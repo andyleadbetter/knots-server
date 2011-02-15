@@ -1,0 +1,5 @@
+#!/bin/sh
+killall -6 ruby
+sleep 1
+/usr/bin/ruby -C "`dirname $0`/../Resources/knots" ./scripts/migrate
+/usr/bin/ruby -C "`dirname $0`/../Resources/knots" ./knots.rb &

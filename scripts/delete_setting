@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+begin
+	if RUBY_VERSION >= "1.9.2"
+		@knots_dir = File.expand_path(File.dirname(File.dirname(__FILE__)))
+		$LOAD_PATH.push(@knots_dir) if !$LOAD_PATH.include?(@knots_dir)
+	end
+	require 'lib/db'
+	require 'lib/common'
+rescue	Exception => ex
+	puts "This script must be run from the knots root"
+	exit
+end
+require 'fileutils'
+
+class DeleteSetting
+	def initialize
+		if ARGV.size > 0
+			database = Common.load_database
+			ARGV.each do | key |
+				puts "Deleting setting \"#{key}\""
+				database.settings.delete_key(key)
+			end
+		else
+			puts "Usage: delete_setting key"
+		end
+		
+	end
+end
+DeleteSetting.new
+

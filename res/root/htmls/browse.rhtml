@@ -1,0 +1,193 @@
+<% if !params["category"] && !params["search"] && !params["path"] %>
+	<div class="controlbar">
+		<div class="itemcombo">
+			Search:
+			<input type="search" class="search" id="searchfield" onkeyup="search2(event, 1)"/>
+			<input type="button" value="Search" class="button" onclick="search2(null, 1)" />
+		</div>
+		<div class="itemcombo">
+			Sort media by:
+			<select name="sort" id="sort">
+				<option value="added DESC">added</option>
+				<option value="modified DESC">modified</option>
+				<option value="rating DESC">rating</option>
+				<option value="views DESC">views</option>
+				<option value="name ASC">name</option>
+				<option value="position DESC">unfinished</option>
+				<option value="duration DESC">duration</option>
+				<option value="path DESC">path</option>
+				<option value="random()">random</option>
+			</select>
+		</div>
+		Show images:
+		<select name="view" id="view" onchange="changeView()">
+			<% type = server.settings.show_images ? server.settings.show_images.to_i : 1 %>
+			<% ["No", "Yes"].each_with_index do | option,index | %>
+				<option value="<%= index %>"<%= type == index ? " selected=\"selected\"" : "" %>><%= option %></option>
+			<% end %>
+		</select>
+		<div class="itemcombo">
+			Transcoding profile:
+			<select name="transcoding_profile" id="transcoding_profile" onchange="saveProfile()">
+				<% db.transcoding_profiles.all.each do | profile | %>
+					<option value="<%= profile.id %>"<%= user.admin && server.settings.transcoding_profile && server.settings.transcoding_profile.to_i == profile.id ? " selected=\"selected\"" : "" %>><%= profile.name %></option>
+				<% end %>
+			</select>
+		</div>
+		<% if user.admin %>
+			<div class="itemcombo">
+				Selected playlist:
+				<select name="playlist" id="playlist">
+					<% db.playlists.all.each do | playlist | %>
+						<option value="<%= playlist.id %>"><%= playlist.name.truncate(40) %></option>
+					<% end %>
+				</select>
+				<input type="button" class="button" value="New playlist" onclick="newPlaylist()" />
+			</div>
+		<% end %>
+	</div>
+	<div id="browse_content" class="browse_content">
+		<%= html("browse_main") %>
+	</div>
+<% elsif params["category"] || params["search"] || params["path"] || params["vid"] %>
+	<% if @pages %>
+		<%
+			show_untagged = !params["tag_id"] && !params["value_id"] && !params["search"] && (params["page"] || "1") == "1" 
+			if @items && @items.size > 0
+		%>
+			<% if params["view"].to_i == 0 %>
+				<input type="button" class="button" value="Back" onclick="browseMain();" /><br style="clear:both;" />
+				<% @items.each do | item | %>
+					<% @item = item %>
+					<%= html("list_item") %>
+				<% end %>
+			<% else %>
+				<% if @pages > 1 %>
+					<div id="pager" style="display:block;">
+					<% if params["vid"] %>
+						Jump&nbsp;to&nbsp;page:&nbsp;<select id="page" name="page" onchange="browseVirtual(<%= params["vid"] %>, document.getElementById('page').value)">
+							<% @pages.times do | i | %>
+								<option value="<%= i + 1 %>"<%= (i + 1) == @page ? " selected=\"selected\"" : "" %>><%= i + 1 %></option>
+							<% end %>
+						</select>
+						<input class="button" type="button"<%= @page > 1 ? "" : " disabled=\"disabled\"" %> value="Previous page" onclick="browseVirtual(<%= params["vid"] %>, <%= @page - 1 %>)" />
+						<input class="button" type="button"<%= @page < @pages ? "" : " disabled=\"disabled\"" %> value="Next page" onclick="browseVirtual(<%= params["vid"] %>, <%= @page + 1 %>)" />
+					<% elsif params["search"] %>
+						Jump&nbsp;to&nbsp;page:&nbsp;<select id="page" name="page" onchange="search2(null, document.getElementById('page').value)">
+							<% @pages.times do | i | %>
+								<option value="<%= i + 1 %>"<%= (i + 1) == @page ? " selected=\"selected\"" : "" %>><%= i + 1 %></option>
+							<% end %>
+						</select>
+						<input class="button" type="button"<%= @page > 1 ? "" : " disabled=\"disabled\"" %> value="Previous page" onclick="search2(null, <%= @page - 1 %>)" />
+						<input class="button" type="button"<%= @page < @pages ? "" : " disabled=\"disabled\"" %> value="Next page" onclick="search2(null, <%= @page + 1 %>)" />
+					<% elsif params["path"] %>
+						Jump&nbsp;to&nbsp;page:&nbsp;<select id="page" name="page" onchange="byPath('<%= CGI::escape(params["path"]) %>', document.getElementById('page').value)">
+							<% @pages.times do | i | %>
+								<option value="<%= i + 1 %>"<%= (i + 1) == @page ? " selected=\"selected\"" : "" %>><%= i + 1 %></option>
+							<% end %>
+						</select>
+						<input class="button" type="button"<%= @page > 1 ? "" : " disabled=\"disabled\"" %> value="Previous page" onclick="byPath('<%= CGI::escape(params["path"]) %>', <%= @page - 1 %>)" />
+						<input class="button" type="button"<%= @page < @pages ? "" : " disabled=\"disabled\"" %> value="Next page" onclick="byPath('<%= CGI::escape(params["path"]) %>', <%= @page + 1 %>)" />
+					<% else %>
+						Jump&nbsp;to&nbsp;page:&nbsp;<select id="page" name="page" onchange="browseCategory(<%= params["category"] %>, <%= params["tag_id"] || 'null' %>, <%= params["value_id"] || 'null' %>, document.getElementById('page').value)">
+							<% @pages.times do | i | %>
+								<option value="<%= i + 1 %>"<%= (i + 1) == @page ? " selected=\"selected\"" : "" %>><%= i + 1 %></option>
+							<% end %>
+						</select>
+						<input class="button" type="button"<%= @page > 1 ? "" : " disabled=\"disabled\"" %> value="Previous page" onclick="browseCategory(<%= params["category"] %>, <%= params["tag_id"] || 'null' %>, <%= params["value_id"] || 'null'  %>, <%= @page - 1 %>)" />
+						<input class="button" type="button"<%= @page < @pages ? "" : " disabled=\"disabled\"" %> value="Next page" onclick="browseCategory(<%= params["category"] %>, <%= params["tag_id"] || 'null'  %>, <%= params["value_id"] || 'null'  %>, <%= @page + 1 %>)" />
+					<% end %>
+					</div>
+				<% end %>
+				<% if params["tag_id"] && !params["value_id"] %>
+					<input type="button" class="button" value="Back" onclick="browseCategory(<%= params["category"] %>, null, null, 1);" /><br style="clear:both;" />
+				<% elsif params["value_id"] %>
+					<input type="button" class="button" value="Back" onclick="browseCategory(<%= params["category"] %>, <%= params["tag_id"] %>, null, 1);" /><br style="clear:both;" />
+				<% elsif params["path"] %>
+					<%
+						path = params["path"].split(",")
+						real_path = collection.path_by_id(params["path"])
+						if real_path != "/"
+							
+							if path.size == 2
+								path[1] = path[1].to_i + 1
+							else
+								path[0] = "/"
+							end
+						else
+							path = ["/"]
+						end
+					%>
+					<% if path[0] != "/" %>
+						<input type="button" class="button" value="Back" onclick="byPath('<%= path.join(",") %>', 1);return false;" /><br style="clear:both;" />
+					<% else %>
+						<input type="button" class="button" value="Back" onclick="browseMain();" /><br style="clear:both;" />
+					<% end %>
+				<% else %>
+					<input type="button" class="button" value="Back" onclick="browseMain();" /><br style="clear:both;" />
+				<% end %>
+				<% item_break = false %>
+				<% @items.each do | item | %>
+					<% @item = item %>
+					<% if item.get_table_name == "tags" %>
+						<% if show_untagged %>
+							<div class="browse">
+								<div class="video_title"><a href="#" class="video" onclick="browseCategory(<%= params["category"] %>, -1, null, 1);return false;">Untagged</a></div>
+								<div class="screenshot"><a href="#" class="video" onclick="browseCategory(<%= params["category"] %>, -1, null, 1);return false;"><img src="/root/resource_file?<%= item.mid ? "mid=#{item.mid}&type=screenshot" : "type=image&file=no_shot0.png" %>" border="0" /></a></div>
+							</div>
+							<% show_untagged = false %>
+						<% end %>
+						<div class="browse">
+							<%= html("tag") %>
+						</div>
+					<% elsif item.get_table_name == "tag_values" %>
+						<div class="browse">
+							<%= html("tag_value") %>
+						</div>
+					<% elsif item.get_table_name == "media" %>
+						<% if !item_break %>
+							<br style="clear:both;" />
+							<% item_break = true %>
+						<% end %>
+						<div class="video_extra">
+							<div id="item_<%= @item.id %>" class="video">
+								<%= html("item") %><br />
+							</div>
+							<div class="item_extra">
+								<input type="button" class="button" value="Play" onclick="play(<%= @item.id %>)" />
+								<% if server.collection.is_audio_file?(@item.path) %>
+									<input type="button" class="button" value="Play artist" onclick="playArtist(<%= @item.id %>)" />
+									<input type="button" class="button" value="Play album" onclick="playAlbum(<%= @item.id %>)" />
+								<% end %>
+								<% if user.admin %>
+									<br /><input type="button" class="button" value="Add to playlist" onclick="addToPlaylist(<%= @item.id %>)" />
+									<% if server.settings.dynknots_key && db.shares %>
+										<input type="button" class="button" value="Share" onclick="shareItem(<%= @item.id %>, null)" />
+									<% end %>
+								<% end %>
+							</div>
+						</div>
+					<% elsif !item.get_table_name %>
+						<div class="browse">
+							<%= html("path") %>
+						</div>
+					<% end %>
+				
+				<% end %>
+			<% end %>
+		
+			<% else %>
+				<% if params["tag_id"] && !params["value_id"] %>
+					<input type="button" class="button" value="Back" onclick="browseCategory(<%= params["category"] %>, null, null, 1);" /><br style="clear:both;" />
+				<% elsif params["value_id"] %>
+					<input type="button" class="button" value="Back" onclick="browseCategory(<%= params["category"] %>, <%= params["tag_id"] %>, null, 1);" /><br style="clear:both;" />
+				<% else %>
+					<input type="button" class="button" value="Back" onclick="browseMain();" /><br style="clear:both;" />
+				<% end %>
+				<p>
+					No results.
+				</p>
+			<% end %>
+		<% end %>
+	<br style="clear:both;" />
+<% end %>

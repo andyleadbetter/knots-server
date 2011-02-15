@@ -1,0 +1,51 @@
+<fieldset>
+	<legend>Media</legend>
+	<p>
+		Here you can easily alter categories and tags and apply them to your media. <a href="#" id="helptoggle" onclick="showHelp();return false;">Learn more...</a>
+		<div id="helpdiv" style="display:none;">
+			<strong>Example 1. I have the same artist or album with 3 different names. How do I merge them?</strong>
+			<ol>
+				<li>Select the album or artist tag from the 'Tags' dropdown list</li>
+				<li>Select the album or artist name you want to merge from the 'Values' dropdown list</li>
+				<li>Click on 'Rename value' and rename it to correct name</li>
+			</ol>
+			<strong>Example 2. I want to apply artist and album tags to a full album. What's the easiest way to accomplish that?</strong>
+			<ol>
+				<li>Find all the songs with search. Easiest way to find them all is to use path as search criteria. (Tags, values and categories are used as search criteria unless you check the 'Ignore selections' checkbox.)</li>
+				<li>Click on 'Select all' to select all the items</li>
+				<li>Select the artist tag</li>
+				<li>Click on 'Add value' and add the artist name</li>
+				<li>Select 'Set tag' from 'Actions'</li>
+				<li>Click on 'Apply to selected'</li>
+				<li>Repeat steps 3-6 for album</li>
+			</ol>
+			<strong>Example 3. I want all my tv-series in a separate category but they go to Videos by default. How can I change that?</strong>
+			<ol>
+				<li>Click on 'Add' button in 'Categories'</li>
+				<li>Enter the category name</li>
+				<li>Double click on 'Settings' tab</li>
+				<li>Click on the path where the series are</li>
+				<li>Select the newly added category from the 'Place video files in category' dropdown list</li>
+			</ol>
+			<strong>Example 3.1. I already scanned the path and now new items go to correct category, but old ones are still in Movies. How can I fix that?</strong>
+			<ol>
+				<li>Search for the items using path for example</li>
+				<li>Click on 'Select all'</li>
+				<li>Select the category you want to place them in</li>
+				<li>Select the 'Set category' action</li>
+				<li>Press 'Apply to selected'</li>
+			</ol>
+			<strong>Example 4. Search doesn't seem to understand tags and values?</strong>
+			<p>
+				Search uses basic fields (name, path, etc.) for search by default, but you can also use tags and values.
+			</p>
+			<p>
+				For example if you want to find all songs from a certain artist that are not in a certain album, you can search like <a href="#" onclick="searchBy2(';artist=Soundtrack of Our Lives,album!=Behind the Music');return false;">this</a>.
+			</p>
+		</div>
+	</p>
+	<%= html("videobar") %>
+	<div id="videoitems" style="clear:both;"></div>
+</fieldset>
+</form>
+

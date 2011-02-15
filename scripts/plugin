@@ -1,0 +1,96 @@
+#!/usr/bin/env ruby
+require 'fileutils'
+
+class PluginCreator
+	def initialize
+		begin
+			if !File.exists?("plugins")
+				puts "Please run this script from knots root"
+			end
+			if ARGV.length > 0
+				if ARGV[0] == "create"
+					name = ARGV[1]
+					ARGV.clear
+					if !name
+						puts "Please enter plugin name:"
+						name = gets
+					end
+					if name && name.length > 1
+						name = name.downcase.scan(/[a-z]/).join("").capitalize
+						if !File.exists?(File.join("plugins", "#{name.downcase}.rb"))
+							puts "Creating plugin #{name}, type yes to continue"
+							response = gets
+							if response.strip.downcase == "yes"
+								create_skeleton(name)
+							else
+								puts "Aborted"
+							end
+						else
+							puts "plugin already exists"
+						end
+					else
+						puts "Aborted"
+					end
+				elsif ARGV[0] == "remove"
+					name = ARGV[1]
+					ARGV.clear
+					if !name
+						plugins = Dir.entries("plugins").delete_if{|filename| File.extname(filename).downcase != ".rb"}.sort.collect!{|x| x = File.basename(x, ".*")}
+						puts "Select a plugin to remove, press ctrl-c to abort"
+						plugins.each_with_index do | plugin, i |
+							puts "#{i + 1}. #{plugin.scan(/[a-z\.]/).join("").capitalize}"
+						end
+						num = gets
+						if num && num.strip.to_i.to_s == num.strip
+							num = num.strip.to_i - 1
+							if num >= 0 && num < plugins.size
+								remove_plugin(plugins[num])
+							else
+								puts "Aborted"
+							end
+						else
+							puts "Aborted"
+						end
+					else
+						name = name.downcase
+						if File.exists?(File.join("plugins", "#{name}.rb"))
+							remove_plugin(name)
+						else
+							puts "No such plugin: #{name}"
+						end
+					end
+				else
+					usage
+				end
+			else
+				usage
+			end
+		rescue Exception => ex
+			puts ex.message
+			puts ex.backtrace
+			puts "Aborted"
+		end
+	end
+	
+	def remove_plugin(name)
+		FileUtils.rm_rf(File.join("plugins", "#{name}.rb"))
+		FileUtils.rm_rf(File.join("res", "#{name}"))
+		puts "Plugin #{name} removed"
+	end
+	
+	def create_skeleton(name)
+		f = File.new(File.join("plugins", "#{name.downcase}.rb"), "w+")
+		f.write("class $PLUGIN < Plugin\n\tdef init\n\tend\n\n\tdef index\n\t\t@hello = \"Hello from $PLUGIN at \#{Time.now}. Your collection has \#{collection.mediacount} items. Your database has \#{db.tables.size} tables. Double click on tab to refresh.\"\n\tend\n\n\tdef html_methods\n\t\treturn {\"$PLUGIN tab\" => \"index\"}\n\tend\nend".gsub("$PLUGIN", name))
+		f.close
+		FileUtils.mkdir_p(File.join("res", "#{name.downcase}", "htmls"))
+		f = File.new(File.join("res", "#{name.downcase}", "htmls", "index.rhtml"), "w+")
+		f.write("<p><%= @hello %></p>")
+		f.close
+		puts "Plugin created as plugins/#{name.downcase}.rb with a method index. Corresponding html can be found in res/#{name.downcase}/htmls/index.rhtml."
+	end
+	
+	def usage
+		puts "Usage: plugin {create} [name]"
+	end
+end
+PluginCreator.new

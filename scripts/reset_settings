@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+begin
+	if RUBY_VERSION >= "1.9.2"
+		@knots_dir = File.expand_path(File.dirname(File.dirname(__FILE__)))
+		$LOAD_PATH.push(@knots_dir) if !$LOAD_PATH.include?(@knots_dir)
+	end
+	require 'lib/db'
+	require 'lib/common'
+rescue	Exception => ex
+	puts "This script must be run from the knots root"
+	exit
+end
+require 'fileutils'
+
+class Reset
+	def initialize
+		database = Common.load_database
+		database2 = KnotsDB.new(File.join("db", "knots.db"))
+		puts "Are you sure you want to reset your settings? This will reset settings and remove all users, but will not affect your media. (y/n)"
+		str = gets
+		if str && str.strip == "y"
+			database.users.clear
+			database.settings.clear
+			database2.settings.all.each do | setting |
+				dbfields = setting.fields
+				dbfields.delete("id")
+				set = database.settings.new
+				set.set_fields(dbfields)
+				set.save
+			end
+			puts "Done. Please restart server."
+		end
+	end
+end
+Reset.new
+

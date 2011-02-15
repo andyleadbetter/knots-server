@@ -1,0 +1,53 @@
+<%
+	help = {
+		"name" => "Name of the profile",
+		"audio_format" => "Audio codec (acodec)",
+		"video_format" => "Video codec (vcodec)",
+		"audio_bitrate" => "Audio bitrate (ab)",
+		"audio_channels" => "Number for audio channels (channels)",
+		"video_bitrate" => "Video bitrate (vb)",
+		"audio_rate" => "Audio sample rate (samplerate)",
+		"mux" => "Video container (mux)",
+		"stream_extension" => "File extension of the stream (uses mux if empty)",
+		"width" => "Width of the video canvas (vfilter=canvas{width})",
+		"height" => "Height of the video canvas (vfilter=canvas{height})",
+		"fps" => "Frames per second (fps)",
+		"video_encoder" => "Video encoder parameters (venc)",	
+		"buffer_seconds" => "Buffer video for X seconds. Used by flash embed and external client",
+		"embed" => "Video embed used by browser, possible values are: wmp,flash,theora or vlc. Flash requires Adobe Flash plugin, theora requires HTML5 compatible browser, and vlc requires the VLC browser plugin.",
+		"scale" => "Scale video, for example 0.5 for half the size (scale)",	
+		"croptop" => "Crop video from top, value is pixels (croptop)",	
+		"cropbottom" => "Crop video from bottom, value is in pixels (cropbottom)",	
+		"cropleft" => "Crop video from left, value is in pixels (cropbottom)",	
+		"cropright" => "Crop video from right, value is pixels (cropright)",	
+		"threads" => "Threads used for encoding. Helps with certain codecs with multiple cores (threads)",	
+		"extra" => "Extra params for transcoding line in the form of 'key=value,another-key=another-value'",	
+		"player" => "Player used by external client (mplayer,gstreamer)",	
+		"vlc_cmd_params" => "Command line parameters for VLC in the form of 'no-sout-display-audio=:marq-color=16776960'",
+		"network_timeout" => "Network timeout, 30 by default. Increase this if you get 'No results' with a large collection."
+	}	
+%>
+<table>
+	<% @profile.fields.each_pair do | key, value | %>
+		<% if key != "id" %>
+			<tr>
+				<td>
+					<%= help[key] ? "<a class=\"transcoder\" title=\"#{help[key]}\">#{key.split("_").collect!{|x| x = x.capitalize}.join(" ")}</a>" : key %>
+				</td>
+				<td><input type="text" class="text" name="<%= key %>" value="<%= value %>" />
+			</tr>
+		<% end %>
+	<% end %>
+	<tr>
+		<td colspan="2" align="center">
+			<br />
+			<input type="button" class="button" value="Save" onclick="saveTranscodingProfile(<%= @profile.id %>)" />
+			<input type="button" class="button" value="Export" onclick="exportProfile(<%= @profile.id %>)" />
+			<input type="button" id="profile_upload<%= @profile.id %>" class="button" value="Import" />
+			<input type="button" class="button" value="Delete" onclick="deleteTranscodingProfile(<%= @profile.id %>)" />
+		</td>
+	</tr>
+</table>
+<script type="text/javascript">
+new AjaxUpload('profile_upload<%= @profile.id %>', {action: '/root/import_profile', data: {profile_id: <%= @profile.id %>}, onComplete: function(file, response) {reloadProfile(<%= @profile.id %>)}});
+</script>

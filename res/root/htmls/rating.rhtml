@@ -1,0 +1,3 @@
+<% 10.times do | i | %>
+	<a href="#" class="rate" onclick="rate(<%= @item.id %>, <%= i + 1 %>);return false;"><%=  image("star#{i >= @item.rating ? "_transparent" : ""}.png", "star_#{@item.id}") %></a>
+<% end %>

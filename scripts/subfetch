@@ -1,0 +1,450 @@
+#!/usr/bin/env ruby
+require 'optparse'
+require 'timeout'
+require 'xmlrpc/client'
+require 'zlib'
+require 'stringio'
+require 'find'
+
+class SF
+	def initialize
+		@messages = Array.new
+		load_languages
+		parse_cmdline
+		total = 0
+		downloaded = 0
+		if @options[:language]
+			files = get_files
+			if files && files.size > 0
+				if login_opensubtitles
+					files.each do | file |
+						putstr("Searching for subtitles for #{File.basename(file)}")
+						if !subtitle_available(file) || @options[:force]
+							total += 1
+							result = search_sub(file)
+							if result
+								putstr("Subtitles found")
+								if download_and_save_sub(result[0]["IDSubtitleFile"], file, File.extname(result[0]["SubFileName"]))
+									putstr("Download successful")
+									downloaded += 1
+								else
+									putstr("Download failed")
+								end
+							else
+								putstr("No subtitles found")
+							end
+						else
+							putstr("Subtitles already exist, file too small or directory not writable.")
+						end
+					end
+				end
+			end
+			putstr("Downloaded #{downloaded}/#{total} subtitles", true)
+		else
+			putstr("Unable to resolve language. Please run for example ./subfetch -l en")
+		end
+	end
+	
+	def load_languages
+		@langs = [
+			["aar", "aa", "Afar, afar"],
+			["abk", "ab", "Abkhazian"],
+			["afr", "af", "Afrikaans"],
+			["aka", "ak", "Akan"],
+			["alb", "sq", "Albanian"],
+			["amh", "am", "Amharic"],
+			["ara", "ar", "Arabic"],
+			["arg", "an", "Aragonese"],
+			["arm", "hy", "Armenian"],
+			["asm", "as", "Assamese"],
+			["ava", "av", "Avaric"],
+			["ave", "ae", "Avestan"],
+			["aym", "ay", "Aymara"],
+			["aze", "az", "Azerbaijani"],
+			["bak", "ba", "Bashkir"],
+			["bam", "bm", "Bambara"],
+			["baq", "eu", "Basque"],
+			["bel", "be", "Belarusian"],
+			["ben", "bn", "Bengali"],
+			["bih", "bh", "Bihari"],
+			["bis", "bi", "Bislama"],
+			["bos", "bs", "Bosnian"],
+			["bre", "br", "Breton"],
+			["bul", "bg", "Bulgarian"],
+			["bur", "my", "Burmese"],
+			["cat", "ca", "Catalan"],
+			["cha", "ch", "Chamorro"],
+			["che", "ce", "Chechen"],
+			["chi", "zh", "Chinese"],
+			["chu", "cu", "Church Slavic"],
+			["chv", "cv", "Chuvash"],
+			["cor", "kw", "Cornish"],
+			["cos", "co", "Corsican"],
+			["cre", "cr", "Cree"],
+			["cze", "cs", "Czech"],
+			["dan", "da", "Danish"],
+			["div", "dv", "Divehi"],
+			["dut", "nl", "Dutch"],
+			["dzo", "dz", "Dzongkha"],
+			["eng", "en", "English"],
+			["epo", "eo", "Esperanto"],
+			["est", "et", "Estonian"],
+			["ewe", "ee", "Ewe"],
+			["fao", "fo", "Faroese"],
+			["fij", "fj", "Fijian"],
+			["fin", "fi", "Finnish"],
+			["fre", "fr", "French"],
+			["fry", "fy", "Frisian"],
+			["ful", "ff", "Fulah"],
+			["geo", "ka", "Georgian"],
+			["ger", "de", "German"],
+			["gla", "gd", "Gaelic"],
+			["gle", "ga", "Irish"],
+			["glg", "gl", "Galician"],
+			["glv", "gv", "Manx"],
+			["ell", "el", "Greek"],
+			["grn", "gn", "Guarani"],
+			["guj", "gu", "Gujarati"],
+			["hat", "ht", "Haitian"],
+			["hau", "ha", "Hausa"],
+			["heb", "he", "Hebrew"],
+			["her", "hz", "Herero"],
+			["hin", "hi", "Hindi"],
+			["hmo", "ho", "Hiri Motu"],
+			["hrv", "hr", "Croatian"],
+			["hun", "hu", "Hungarian"],
+			["ibo", "ig", "Igbo"],
+			["ice", "is", "Icelandic"],
+			["ido", "io", "Ido"],
+			["iii", "ii", "Sichuan Yi"],
+			["iku", "iu", "Inuktitut"],
+			["ile", "ie", "Interlingue"],
+			["ina", "ia", "Interlingua"],
+			["ind", "id", "Indonesian"],
+			["ipk", "ik", "Inupiaq"],
+			["ita", "it", "Italian"],
+			["jav", "jv", "Javanese"],
+			["jpn", "ja", "Japanese"],
+			["kal", "kl", "Kalaallisut"],
+			["kan", "kn", "Kannada"],
+			["kas", "ks", "Kashmiri"],
+			["kau", "kr", "Kanuri"],
+			["kaz", "kk", "Kazakh"],
+			["khm", "km", "Khmer"],
+			["kik", "ki", "Kikuyu"],
+			["kin", "rw", "Kinyarwanda"],
+			["kir", "ky", "Kirghiz"],
+			["kom", "kv", "Komi"],
+			["kon", "kg", "Kongo"],
+			["kor", "ko", "Korean"],
+			["kua", "kj", "Kuanyama"],
+			["kur", "ku", "Kurdish"],
+			["lao", "lo", "Lao"],
+			["lat", "la", "Latin"],
+			["lav", "lv", "Latvian"],
+			["lim", "li", "Limburgan"],
+			["lin", "ln", "Lingala"],
+			["lit", "lt", "Lithuanian"],
+			["ltz", "lb", "Luxembourgish"],
+			["lub", "lu", "Luba-Katanga"],
+			["lug", "lg", "Ganda"],
+			["mac", "mk", "Macedonian"],
+			["mah", "mh", "Marshallese"],
+			["mal", "ml", "Malayalam"],
+			["mao", "mi", "Maori"],
+			["mar", "mr", "Marathi"],
+			["may", "ms", "Malay"],
+			["mlg", "mg", "Malagasy"],
+			["mlt", "mt", "Maltese"],
+			["mol", "mo", "Moldavian"],
+			["mon", "mn", "Mongolian"],
+			["nau", "na", "Nauru"],
+			["nav", "nv", "Navajo"],
+			["nbl", "nr", "Ndebele, South"],
+			["nde", "nd", "Ndebele, North"],
+			["ndo", "ng", "Ndonga"],
+			["nep", "ne", "Nepali"],
+			["nno", "nn", "Norwegian Nynorsk"],
+			["nob", "nb", "Norwegian Bokmal"],
+			["nor", "no", "Norwegian"],
+			["nya", "ny", "Chichewa"],
+			["oci", "oc", "Occitan"],
+			["oji", "oj", "Ojibwa"],
+			["ori", "or", "Oriya"],
+			["orm", "om", "Oromo"],
+			["oss", "os", "Ossetian"],
+			["pan", "pa", "Panjabi"],
+			["per", "fa", "Persian"],
+			["pli", "pi", "Pali"],
+			["pol", "pl", "Polish"],
+			["por", "pt", "Portuguese"],
+			["pus", "ps", "Pushto"],
+			["que", "qu", "Quechua"],
+			["roh", "rm", "Raeto-Romance"],
+			["run", "rn", "Rundi"],
+			["rus", "ru", "Russian"],
+			["sag", "sg", "Sango"],
+			["san", "sa", "Sanskrit"],
+			["scc", "sr", "Serbian"],
+			["sin", "si", "Sinhalese"],
+			["slo", "sk", "Slovak"],
+			["slv", "sl", "Slovenian"],
+			["sme", "se", "Northern Sami"],
+			["smo", "sm", "Samoan"],
+			["sna", "sn", "Shona"],
+			["snd", "sd", "Sindhi"],
+			["som", "so", "Somali"],
+			["sot", "st", "Sotho, Southern"],
+			["spa", "es", "Spanish"],
+			["srd", "sc", "Sardinian"],
+			["ssw", "ss", "Swati"],
+			["sun", "su", "Sundanese"],
+			["swa", "sw", "Swahili"],
+			["swe", "sv", "Swedish"],
+			["tah", "ty", "Tahitian"],
+			["tam", "ta", "Tamil"],
+			["tat", "tt", "Tatar"],
+			["tel", "te", "Telugu"],
+			["tgk", "tg", "Tajik"],
+			["tgl", "tl", "Tagalog"],
+			["tha", "th", "Thai"],
+			["tib", "bo", "Tibetan"],
+			["tir", "ti", "Tigrinya"],
+			["ton", "to", "Tonga (Tonga Islands)"],
+			["tsn", "tn", "Tswana"],
+			["tso", "ts", "Tsonga"],
+			["tuk", "tk", "Turkmen"],
+			["tur", "tr", "Turkish"],
+			["twi", "tw", "Twi"],
+			["uig", "ug", "Uighur"],
+			["ukr", "uk", "Ukrainian"],
+			["urd", "ur", "Urdu"],
+			["uzb", "uz", "Uzbek"],
+			["ven", "ve", "Venda"],
+			["vie", "vi", "Vietnamese"],
+			["vol", "vo", "Volapük"],
+			["wel", "cy", "Welsh"],
+			["wln", "wa", "Walloon"],
+			["wol", "wo", "Wolof"],
+			["xho", "xh", "Xhosa"],
+			["yid", "yi", "Yiddish"],
+			["yor", "yo", "Yoruba"],
+			["zha", "za", "Zhuang"],
+			["zul", "zu", "Zulu"],
+			["rum", "ro", "Romanian"],
+			["pob", "pb", "Brazilian"],
+			["unk", "un", "Unknown"],
+			["ass", "ay", "Assyrian"]
+		]
+	end
+	
+	def parse_cmdline
+		@options = {}
+		optparse = OptionParser.new do|opts|
+		  # Set a banner, displayed at the top
+		  # of the help screen.
+		  opts.banner = "Usage: subfetch [params]"
+		
+		  # Define the options, and what they do
+		  @options[:verbose] = false
+		  opts.on( '-v', '--verbose', 'Output more information' ) do
+		    @options[:verbose] = true
+		  end
+		  @options[:prompt] = false
+		  opts.on( '-p', '--prompt', 'Ask which subtitles to download' ) do
+		    @options[:prompt] = true
+		  end
+		  @options[:scan] = nil
+		  opts.on( '-s', '--scan PATH', 'Scan a path instead of querying tracker' ) do | path |
+		    @options[:scan] = path
+		    if !File.exists?(path) || !File.readable?(path)
+		    	puts("Invalid path #{path}")
+		    	exit(1)
+		    end
+		    if @options[:knots]
+		     	puts("Error: -k and -s are mutually exclusive")
+		     	exit(1)
+		     end
+		  end
+		  @options[:force] = false
+		  opts.on( '-f', '--force', "Force download even if subtitles exist" ) do
+		     @options[:force] = true
+		  end
+		  @options[:extensions] = "mkv,avi,mpg,mpeg,mov,wmv"
+		  opts.on( '-e', '--extensions LIST', "Comma separated list of scanned file extensions (#{ @options[:extensions]})" ) do | list |
+		    @options[:extensions] = list
+		  end
+		  @options[:knots] = false
+		  opts.on( '-k', '--knots', "Use Knots' database" ) do
+		     @options[:knots] = true
+		     if @options[:scan] != nil
+		     	puts("Error: -k and -s are mutually exclusive")
+		     	exit(1)
+		     end
+		  end
+		  opts.on( '-a', '--list-languages', "List languages and exit" ) do
+			@langs.each do | lang |
+				puts "#{lang[1]} => #{lang[2]}"
+			 end
+			 exit(0)
+		  end
+		   default_lang = (ENV["LANG"] || "en_US").split("_")[0]
+		   @options[:language] = get_language_id(default_lang)
+		  opts.on( '-l', '--language LANG', "Change subitle language (#{default_lang})" ) do | lang |
+		    @options[:language] = get_language_id(lang)
+		    putstr("Switching to language #{lang}")
+		  end
+		  # This displays the help screen, all programs are
+		  # assumed to have this option.
+		  opts.on( '-h', '--help', 'Display this screen' ) do
+		    puts opts
+		    exit
+		  end
+		end
+		optparse.parse!
+	end
+	
+	def get_files
+		files = nil
+		if  !@options[:scan] && !@options[:knots]
+			files = IO.popen("tracker-files -s Videos *").readlines.delete_if{|line| line.index("Results:") != nil}.collect!{|line| line = line.strip}
+			Process.wait
+		elsif @options[:scan]
+			extensions = @options[:extensions].downcase.split(",").collect!{|ext|ext = ".#{ext.strip}"}
+			putstr("Scanned extensions #{extensions.join(" / ")}")
+			files = Array.new
+			Find.find(@options[:scan]) do | filename |
+				if File.readable?(filename) && !File.directory?(filename) && extensions.include?(File.extname(filename).downcase)
+					files.push(filename)
+				end
+			end
+		elsif @options[:knots]
+			files = Array.new
+			require 'lib/db'
+			require 'lib/common'
+			db = Common.load_database(false)
+			db.media.sql("SELECT * FROM media WHERE mediatype=0 AND active=1").each do | file |
+				files.push(file.path)
+			end
+		end
+		return files
+	end
+	
+	def subtitle_available(filename)
+		return File.exists?("#{File.join(File.dirname(filename), File.basename(filename, ".*"))}.srt") || File.exists?("#{File.join(File.dirname(filename), File.basename(filename, ".*"))}.sub") || !File.readable?(File.dirname(filename)) || File.size(filename) < 30000000
+	end
+	
+	def login_opensubtitles
+		client = XMLRPC::Client.new2("http://api.opensubtitles.org/xml-rpc")
+		if !@opensubtoken
+			result = client.call('LogIn', '', '', '', 'Knots v0.1')
+			if result["status"].index("200 OK")
+				@opensubtoken = result['token']
+				putstr("Successfully logged into opensubtitles")
+				return true
+			else
+				putstr("Critical error: Login to opensubtitles failed. Exiting!")
+				exit(1)
+			end
+		end
+		return false
+	end
+	
+	def search_sub(filename)
+		begin
+			Timeout.timeout(10) do
+				client = XMLRPC::Client.new2("http://api.opensubtitles.org/xml-rpc")
+				if @opensubtoken
+					moviehash = compute_hash(filename)
+					result = client.call('SearchSubtitles', @opensubtoken, [{
+						'sublanguageid' => @options[:language], 
+						'moviehash'     => moviehash,
+						'moviebytesize' => File.size(filename)
+					}])
+					if result["data"] && result["data"].instance_of?(Array) && result.size > 0
+						return result["data"]
+					end
+				else
+					putstr("Critical error: Login to opensubtitles failed. Exiting!")
+				end
+			end
+		rescue Exception => ex
+			putstr(ex.message)
+			putstr("Critical error: #{ex.message}. Exiting!")
+		end
+		return nil
+	end
+	
+	def download_and_save_sub(subid, filename, extension)
+		begin
+			Timeout.timeout(10) do
+				client = XMLRPC::Client.new2("http://api.opensubtitles.org/xml-rpc")
+				result = client.call('DownloadSubtitles', @opensubtoken, [subid])
+				if result["data"] && result["data"].instance_of?(Array)
+					if result && result["data"] && result["data"][0] && result["data"][0]["data"]
+						subdata = Zlib::GzipReader.new(StringIO.new(XMLRPC::Base64.decode(result["data"][0]["data"]))).read
+						subfile = "#{File.join(File.dirname(filename), File.basename(filename, ".*"))}#{extension}"
+						begin
+							File.open(subfile, 'w') {|f| f.write(subdata) }
+							putstr("Saving subtitles to #{subfile}")
+						rescue Exception => ex
+							putstr(ex.message)
+						end
+						return true
+					end
+				else
+					server.log("Unable to fetch subtitles: #{result}", 2)
+				end
+			end
+		rescue Exception => ex
+			putstr(ex.message)	
+		end
+		false
+	end
+	
+	def compute_hash(filename = nil)
+		if filename && File.exists?(filename)
+			filesize = File.size(filename)
+			hash = filesize
+			chunk_size = 64 * 1024 # in bytes
+			# Read 64 kbytes, divide up into 64 bits and add each
+			# to hash. Do for beginning and end of file.
+			File.open(filename, 'rb') do |f|    
+				# Q = unsigned long long = 64 bit
+				f.read(chunk_size).unpack("Q*").each do |n|
+					hash = hash + n & 0xffffffffffffffff # to remain as 64 bit number
+				end
+				f.seek([0, filesize - chunk_size].max, IO::SEEK_SET)
+				
+				# And again for the end of the file
+				f.read(chunk_size).unpack("Q*").each do |n|
+					hash = hash + n & 0xffffffffffffffff
+				end
+			end
+			return sprintf("%016x", hash)
+		end
+		nil
+	end
+	
+	def get_language_id(language)
+		@langs.each do | lang |
+			if lang[1] == language.downcase || lang[2].downcase == language.downcase
+				return lang[0]
+			end
+		end
+		nil
+	end
+	
+	def putstr(str, force = false)
+		if (@options[:verbose] || force) && str
+			while @messages.size != 0
+				putstr(@messages.shift)
+			end
+			puts("[#{Time.now.strftime("%Y-%m-%d %H:%M:%S")}] #{str}")
+		elsif str
+			@messages.push(str)
+		end
+	end
+	
+end
+SF.new

@@ -1,0 +1,3 @@
+CREATE TABLE "shares" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "media_id" INTEGER, "playlist_id" INTEGER, "created" DATETIME NOT NULL , "key" VARCHAR);
+ALTER TABLE users ADD COLUMN "temporary" DATETIME;
+

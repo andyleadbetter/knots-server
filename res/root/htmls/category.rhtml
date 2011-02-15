@@ -1,0 +1,21 @@
+<div class="browse">
+	<div class="video_title">
+		<% if @item.name %>
+			<a href="#" class="video" onclick="play(<%= @item.id %>)"><%= @item.name %></a>
+		<% elsif @item.category %>
+			<a href="#" class="video" onclick="browseCategory(<%= @item.id %>, null, null, 1);return false;"><%= @item.category %></a>
+		<% elsif @item.virtual %>
+			<a href="#" class="video" onclick="browseVirtual(<%= @item.id %>, 1);return false;"><%= @item.virtual %></a>
+		<% end %>
+	</div>
+	<div class="screenshot">
+		<% if @item.name %>
+			<a href="#" class="video" onclick="play(<%= @item.id %>)"><img src="/root/resource_file?<%= @item.mid ? "mid=#{@item.mid}&type=screenshot" : "type=image&file=no_shot0.png" %>" border="0" /></a>
+		<% elsif @item.category %>
+			<a href="#" class="video" onclick="browseCategory(<%= @item.id %>,null, null, 1);return false;"><img src="/root/resource_file?<%= @item.mid ? "mid=#{@item.mid}&type=screenshot" : "type=image&file=no_shot0.png" %>" border="0" /></a>
+		<% elsif @item.virtual %>
+			<a href="#" class="video" onclick="browseVirtual(<%= @item.id %>, 1);return false;"><img src="/root/resource_file?<%= @item.mid ? "mid=#{@item.mid}&type=screenshot" : "type=image&file=no_shot0.png" %>" border="0" /></a>
+		<% end %>
+	</div>
+</div>
+
